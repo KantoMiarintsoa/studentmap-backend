@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+  OWNER
+  ORGANIZER
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  email          String          @unique
+  firstName      String
+  lastName       String
+  password       String          @db.Text
+  contact        String
+  profilePicture String?
+  role           Role            @default(STUDENT)
+  Accommodation  Accommodation[]
+  University     University[]
+  Event          Event[]
+  EventStudent   EventStudent[]
+  createdAt      DateTime        @default(now())
+}
+
+model Accommodation {
+  id                Int     @id @default(autoincrement())
+  name              String
+  address           String
+  area              Float
+  receptionCapacity String
+  IsAvailable       Boolean @default(false)
+  rentMin           Float
+  rentMax           Float
+  currency          String  @default("Ar")
+  media             Json?
+  ownerId           Int
+  owner             User    @relation(fields: [ownerId], references: [id])
+  type              Type
+}
+
+enum Type {
+  APARTEMENT
+  GUEST
+  BUNGALOW
+  DORTOIR
+}
+
+model University {
+  id          Int            @id @default(autoincrement())
+  name        String
+  description String
+  city        String
+  webSite     String
+  mention     String[]
+  type        TypeUniversity
+  // localisation String
+  address     String
+  // ownerId     Int
+  // owner       User           @relation(fields: [ownerId], references: [id])
+  User        User?          @relation(fields: [userId], references: [id])
+  userId      Int?
+  Event       Event[]
+}
+
+enum TypeUniversity {
+  public
+  prive
+}
+
+model Event {
+  id                     Int            @id @default(autoincrement())
+  name                   String
+  description            String
+  startDate              DateTime
+  endDate                DateTime
+  created_at             DateTime       @default(now())
+  updated_at             DateTime       @default(now())
+  location               String?
+  capacity               Float?
+  registration_available Boolean?
+  registration_link      String?
+  image                  String?
+  universityId           Int?
+  university             University?    @relation(fields: [universityId], references: [id])
+  userId                 Int
+  user                   User           @relation(fields: [userId], references: [id])
+  EventStudent           EventStudent[]
+}
+
+model EventStudent {
+  userId       Int
+  eventId      Int
+  registeredAt DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
+  event        Event    @relation(fields: [eventId], references: [id])
+
+  @@id([userId, eventId])
+}
+
+enum EventType {
+  STUDENT_FAIR
+  FORUM
+  cCONFERENCE
+}

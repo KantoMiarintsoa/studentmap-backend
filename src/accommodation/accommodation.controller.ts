@@ -1,0 +1,64 @@
+import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { AccommodationService } from './accommodation.service';
+import { AddAccomodationDTO } from './dto/accommodation.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { UpdateAccommodationDTO } from './dto/update.dto';
+import { RoleGuard } from 'src/auth/role.guard';
+
+@Controller('accommodation')
+export class AccommodationController {
+    constructor(
+        private accommodationservice: AccommodationService
+    ) { }
+
+    @Post('add')
+    @UseGuards(AuthGuard, new RoleGuard(["ADMIN", "OWNER"]))
+    async addAccommodation(
+        @Req() req: { user: { id: number } },
+        @Body() data: AddAccomodationDTO
+
+    ) {
+        return await this.accommodationservice.addAccomodation(data, req.user.id)
+    }
+
+    @Get(':id/details')
+    @UseGuards(AuthGuard)
+    async getAccommodation(
+        @Param("id") id: string,
+    ) {
+        return await this.accommodationservice.detailsAccommodation(parseInt(id))
+    }
+
+    @Put(':id/update')
+    @UseGuards(AuthGuard)
+    async updateAccommodation(
+        @Param("id") id: string,
+        @Req() req: { user: { id: number } },
+        @Body() data: UpdateAccommodationDTO
+    ) {
+        return await this.accommodationservice.updateAccommodation(parseInt(id), data, req.user.id)
+    }
+
+    @Get('lists')
+    @UseGuards(AuthGuard, new RoleGuard(["ADMIN", "STUDENT"]))
+    async getAllAccommodations() {
+        return await this.accommodationservice.GetAllAccommodations()
+    }
+
+    @Delete(':id/delete')
+    @UseGuards(AuthGuard, new RoleGuard(["ADMIN"]))
+    async deleteAccommodation(
+        @Param('id') id: string,
+
+    ) {
+        return await this.accommodationservice.deleteAccommodation(parseInt(id))
+    }
+
+    @Get("search")
+    @UseGuards(AuthGuard)
+    async getAccommodationsByType(
+        @Query("type") type?: string
+    ) {
+        return await this.accommodationservice.searchAccommodation(type)
+    }
+}
