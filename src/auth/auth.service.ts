@@ -24,12 +24,14 @@ export class AuthService {
             throw new UnauthorizedException();
         }
 
+
         const payload = { id: user.id, email: user.email, role: user.role }
         return {
             access_token: await this.jwtservice.signAsync(payload, {
                 secret: process.env.SECRET
             }),
             user: {
+                id: user.id,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,

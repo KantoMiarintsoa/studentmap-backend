@@ -4,11 +4,13 @@ import { AddUniversityDTO } from './dto/university.dto';
 import { UpdateAccommodationDTO } from 'src/accommodation/dto/update.dto';
 import { UpdateUniversityDTO } from './dto/update-university.dto';
 import { TypeUniversity } from '@prisma/client';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UniversityService {
     constructor(
-        private prisma: PrismaService
+        private prisma: PrismaService,
+        private emailService: EmailService
     ) { }
 
     async addUniversity(data: AddUniversityDTO, userId: number) {
@@ -29,7 +31,7 @@ export class UniversityService {
         }
         console.log(data)
 
-        return this.prisma.university.create({
+        const university = await this.prisma.university.create({
             data: {
                 name: data.name,
                 type: data.type,
@@ -41,6 +43,41 @@ export class UniversityService {
 
             }
         })
+
+        const users = await this.prisma.user.findMany({
+            where: {
+                address: data.address,
+            },
+            select: { email: true }
+        });
+
+        const subject = `📣 Nouvelle université ajoutée : ${data.name}`;
+        const html = `
+    <p>Bonjour,</p>
+    <p>Une nouvelle université a été ajoutée sur notre plateforme :</p>
+    <ul>
+      <li><strong>Nom :</strong> ${data.name}</li>
+      <li><strong>Adresse :</strong> ${data.address}, ${data.city}</li>
+      <li><strong>Description :</strong> ${data.description}</li>
+      <li><strong>Type :</strong> ${data.type}</li>
+    </ul>
+    <p>Visitez le site : <a href="${data.webSite}" target="_blank">${data.webSite}</a></p>`;
+
+        for (const user of users) {
+            try {
+                await this.emailService.notifyEmail({
+                    email: user.email,
+                    subject,
+                    html
+                });
+            }
+            catch (error) {
+                console.warn(`❌ Email non envoyé à ${user.email}`, error.message);
+            }
+        }
+
+        return university;
+
     }
 
     async getUniversity(id: number) {
@@ -171,3 +208,4 @@ export class UniversityService {
         return universities
     }
 }
+

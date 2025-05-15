@@ -2,11 +2,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma.service';
 import { AddEventDTO } from './dto/event.dto';
 import { UpdateEventDTO } from './dto/update-event.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class EventService {
     constructor(
-        private prisma: PrismaService
+        private prisma: PrismaService,
+        private emailService: EmailService
     ) { }
 
     async addEvent(data: AddEventDTO, userId: number) {
@@ -26,7 +28,7 @@ export class EventService {
             })
         }
 
-        return this.prisma.event.create({
+        const event = await this.prisma.event.create({
             data: {
                 name: data.name,
                 description: data.description ?? null,
@@ -42,7 +44,52 @@ export class EventService {
                 user: { connect: { id: userId } },
                 ...(data.universityId && { university: { connect: { id: data.universityId } } })
             }
-        })
+        });
+
+        const users = await this.prisma.user.findMany({
+            select: {
+                email: true,
+                address: true,
+                preference: true
+            }
+        });
+
+        const subject = `📢 Nouvel événement : ${data.name}`;
+        const html = `
+            <p>Bonjour,</p>
+            <p>Un nouvel événement a été publié sur la plateforme :</p>
+            <ul>
+                <li><strong>Nom :</strong> ${data.name}</li>
+                <li><strong>Lieu :</strong> ${data.location ?? 'Non précisé'}</li>
+                <li><strong>Date de début :</strong> ${new Date(data.startDate).toLocaleDateString()}</li>
+                ${data.endDate ? `<li><strong>Date de fin :</strong> ${new Date(data.endDate).toLocaleDateString()}</li>` : ''}
+                ${data.registrationLink ? `<li><strong>Inscription :</strong> <a href="${data.registrationLink}">Lien</a></li>` : ''}
+            </ul>
+            <p>${data.description ?? ''}</p>`;
+
+        for (const user of users) {
+            const adressProche = user.address?.toLowerCase().includes(data.location?.toLowerCase() || '')
+            const preferenceCorrespond = user.preference?.some((pref: string) =>
+                data.name.toLowerCase().includes(pref.toLowerCase())
+            );
+            if (!adressProche && preferenceCorrespond) {
+                continue;
+            }
+            try {
+                await this.emailService.notifyEmail({
+                    email: user.email,
+                    subject,
+                    html
+                })
+            }
+
+            catch (error) {
+                console.warn(` Email non envoyé à ${user.email}`, error.message);
+            }
+        }
+
+        return event
+
     }
 
 
@@ -132,4 +179,36 @@ export class EventService {
         })
         return registration
     }
+
+    async searchEventsByName(name?: string) {
+        if (!name || name.trim() === '') {
+            return this.prisma.event.findMany({
+                orderBy: {
+                    name: 'asc'
+                }
+            });
+        }
+
+        const events = await this.prisma.event.findMany({
+            where: {
+                name: {
+                    equals: name,
+                    mode: 'insensitive',
+                },
+            },
+            orderBy: {
+                name: 'asc'
+            }
+        })
+
+        if (!events.length) {
+            return this.prisma.event.findMany({
+                orderBy: {
+                    name: 'asc'
+                }
+            })
+        }
+        return events
+    }
 }
+

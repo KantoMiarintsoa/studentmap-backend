@@ -3,17 +3,21 @@ import { PrismaService } from 'src/common/prisma.service';
 import { AddAccomodationDTO } from './dto/accommodation.dto';
 import { Type as AccommodationType } from '@prisma/client';
 import { UpdateAccommodationDTO } from './dto/update.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class AccommodationService {
     constructor(
-        private prisma: PrismaService
+        private prisma: PrismaService,
+        private emailService: EmailService
     ) { }
 
     async addAccomodation(data: AddAccomodationDTO, userId: number) {
         const accommodationExist = await this.prisma.accommodation.findFirst({
-            where: { address: data.address }
-        })
+            where: { address: data.address },
+        },
+        )
+
         if (accommodationExist) {
             throw new BadRequestException({ message: "address already exist" })
         }
@@ -36,7 +40,7 @@ export class AccommodationService {
             });
         }
 
-        return this.prisma.accommodation.create({
+        const accommodation = this.prisma.accommodation.create({
             data: {
                 name: data.name,
                 address: data.address,
@@ -49,7 +53,42 @@ export class AccommodationService {
                 owner: { connect: { id: ownerId } }
             }
         })
+
+        const users = await this.prisma.user.findMany({
+            where: {
+                address: data.address
+            },
+            select: { email: true }
+        });
+
+        const subject = `🏠 Nouveau logement disponible : ${data.name}`;
+        const html = `
+        <p>Bonjour,</p>
+        <p>Un nouveau logement vient d'être ajouté sur la plateforme :</p>
+        <ul>
+            <li><strong>Nom :</strong> ${data.name}</li>
+            <li><strong>Adresse :</strong> ${data.address}</li>
+            <li><strong>Zone :</strong> ${data.area}</li>
+            <li><strong>Capacité d'accueil :</strong> ${data.receptionCapacity}</li>
+            <li><strong>Loyer :</strong> ${data.rentMin} - ${data.rentMax} MGA</li>
+        </ul>
+        <p>Connectez-vous à la plateforme pour en savoir plus !</p>`;
+
+        for (const user of users) {
+            try {
+                await this.emailService.notifyEmail({
+                    email: user.email,
+                    subject,
+                    html
+                })
+            }
+            catch (error) {
+                console.warn(`❌ Email non envoyé à ${user.email}`, error.message);
+            }
+        }
+        return accommodation
     }
+
 
     async detailsAccommodation(id: number) {
         const accommodation = await this.prisma.accommodation.findUnique({

@@ -4,12 +4,15 @@ import { UserRegisterDTO } from './dto/users.dto';
 import * as bcrypt from 'bcrypt';
 import { Role, User } from '@prisma/client';
 import { UserUpdateDTO } from './dto/update-user.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UsersService {
+    private resetCodes = new Map<string, string>()
     constructor(
         @Inject(forwardRef(() => PrismaService))
-        private readonly prisma: PrismaService
+        private readonly prisma: PrismaService,
+        private emailService: EmailService
     ) { }
 
     async createUser(data: UserRegisterDTO) {
@@ -24,7 +27,7 @@ export class UsersService {
         }
 
         const hashedPasssword = await this.hashPassword(data.password)
-        return this.prisma.user.create({
+        const user = await this.prisma.user.create({
             data: {
                 firstName: data.firstName,
                 lastName: data.lastName,
@@ -32,9 +35,49 @@ export class UsersService {
                 contact: data.contact,
                 password: hashedPasssword
             }
+        });
 
+        this.emailService.sendEmailAfterRegister({
+            email: user.email
         })
+        return user
     }
+
+    async sendResetCode(email: string) {
+        const user = await this.prisma.user.findUnique({ where: { email } });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+        this.resetCodes.set(email, code);
+
+        await this.emailService.sendForgotPassword({ email, code });
+
+        return { message: 'Reset code sent to email' };
+    }
+
+
+    async verifyResetCode(email: string, code: string, newPassword: string) {
+        const savedCode = this.resetCodes.get(email);
+        if (!savedCode || savedCode !== code) {
+            throw new Error('Invalid or expired code');
+        }
+
+        const hashedPassword = await this.hashPassword(newPassword);
+
+        await this.prisma.user.update({
+            where: { email },
+            data: { password: hashedPassword }
+        });
+
+        this.resetCodes.delete(email);
+
+        return { message: 'Password updated successfully' };
+    }
+
 
     async hashPassword(password: string) {
         return await bcrypt.hash(password, 8)
@@ -130,6 +173,38 @@ export class UsersService {
         }
         return { message: "user deleted" }
 
+    }
+
+    async searchUsers(lastName?: string) {
+        if (!lastName || lastName.trim() === '') {
+            return this.prisma.user.findMany({
+                orderBy: {
+                    lastName: 'asc',
+                },
+            });
+        }
+
+        const users = await this.prisma.user.findMany({
+            where: {
+                lastName: {
+                    equals: lastName,
+                    mode: 'insensitive',
+                },
+            },
+            orderBy: {
+                lastName: 'asc',
+            },
+        });
+
+        if (!users.length) {
+            return this.prisma.user.findMany({
+                orderBy: {
+                    lastName: 'asc',
+                },
+            });
+        }
+
+        return users;
     }
 
 }

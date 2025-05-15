@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { EventService } from './event.service';
 import { AddEventDTO } from './dto/event.dto';
 import { UpdateEventDTO } from './dto/update-event.dto';
@@ -61,5 +61,12 @@ export class EventController {
         @Param('id') id: string
     ) {
         return await this.eventService.registerEvent(parseInt(id), req.user.id)
+    }
+
+    @Get('search')
+    async searchEventByName(
+        @Query('name') name: string
+    ) {
+        return this.eventService.searchEventsByName(name)
     }
 }

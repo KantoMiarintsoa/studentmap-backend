@@ -79,3 +79,4 @@ export class UniversityController {
         return this.universityService.compareUniversities(mentionArray)
     }
 }
+

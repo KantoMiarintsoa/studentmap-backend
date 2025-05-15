@@ -21,19 +21,22 @@ enum Role {
 }
 
 model User {
-  id             Int             @id @default(autoincrement())
-  email          String          @unique
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
   firstName      String
   lastName       String
-  password       String          @db.Text
+  password       String   @db.Text
   contact        String
   profilePicture String?
-  role           Role            @default(STUDENT)
-  Accommodation  Accommodation[]
-  University     University[]
-  Event          Event[]
-  EventStudent   EventStudent[]
-  createdAt      DateTime        @default(now())
+  address        String?
+  preference     String[]
+
+  role          Role            @default(STUDENT)
+  Accommodation Accommodation[]
+  University    University[]
+  Event         Event[]
+  EventStudent  EventStudent[]
+  createdAt     DateTime        @default(now())
 }
 
 model Accommodation {
@@ -63,7 +66,7 @@ model University {
   id          Int            @id @default(autoincrement())
   name        String
   description String
-  city        String
+  city        String?
   webSite     String
   mention     String[]
   type        TypeUniversity

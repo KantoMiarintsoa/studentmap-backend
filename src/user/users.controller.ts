@@ -27,7 +27,7 @@ export class UsersController {
         return await this.userservice.findById(parseInt(id))
     }
 
-    @Put()
+    @Put(':id/udpdate')
     @UseGuards(AuthGuard)
     async updateUser(
         @Req() req: { user: { id: number } },
@@ -52,5 +52,26 @@ export class UsersController {
         @Param('id') id: string,
     ) {
         return this.userservice.deleteUser(parseInt(id))
+    }
+
+    @Post('reset-password/send-code')
+    async resetPassowrdSentCode(
+        @Body() body: { email: string }
+    ) {
+        return this.userservice.sendResetCode(body.email)
+    }
+
+    @Post('reset-password/confirm')
+    async resetPasswordConfirm(
+        @Body() body: { email: string; code: string; newPassword: string }
+    ) {
+        return this.userservice.verifyResetCode(body.email, body.code, body.newPassword)
+    }
+
+    @Get('search')
+    async searchUser(
+        @Query('lastName') lastname: string
+    ) {
+        return this.userservice.searchUsers(lastname)
     }
 }

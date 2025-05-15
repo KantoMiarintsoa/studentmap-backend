@@ -12,6 +12,9 @@ import { UniversityController } from './university/university.controller';
 import { EvenementModule } from './evenement/evenement.module';
 import { BackupModule } from './backup/backup.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ExportService } from './export/export.service';
+import { ExportModule } from './export/export.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -23,9 +26,11 @@ import { ScheduleModule } from '@nestjs/schedule';
     // EventModule,
     EvenementModule,
     BackupModule,
-    ScheduleModule.forRoot()
+    ScheduleModule.forRoot(),
+    ExportModule,
+    EmailModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ExportService],
 })
 export class AppModule { }
