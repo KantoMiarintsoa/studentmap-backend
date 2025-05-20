@@ -39,4 +39,19 @@ export class AuthService {
             }
         }
     }
+
+    async verifyToken(token: string) {
+        try {
+            const payload = await this.jwtservice.verifyAsync(token, {
+                secret: process.env.SECRET
+            })
+
+            const user = await this.userservice.findById(payload.id);
+
+            return user;
+        }
+        catch {
+            return null;
+        }
+    }
 }

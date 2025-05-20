@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { Role, User } from '@prisma/client';
 import { UserUpdateDTO } from './dto/update-user.dto';
 import { EmailService } from 'src/email/email.service';
+import { StorageService } from 'src/storage/storage.service';
 
 @Injectable()
 export class UsersService {
@@ -12,7 +13,8 @@ export class UsersService {
     constructor(
         @Inject(forwardRef(() => PrismaService))
         private readonly prisma: PrismaService,
-        private emailService: EmailService
+        private emailService: EmailService,
+        private storageService: StorageService
     ) { }
 
     async createUser(data: UserRegisterDTO) {
@@ -108,7 +110,7 @@ export class UsersService {
         })
     }
 
-    async updateUser(id: number, data: UserUpdateDTO) {
+    async updateUser(id: number, data: UserUpdateDTO, profilePicture?: Express.Multer.File) {
         const { password, oldPassword, ...body } = data
         const user = await this.prisma.user.findUnique({
             where: { id: id }
@@ -133,7 +135,12 @@ export class UsersService {
             }
         }
 
-        return await this.prisma.user.update({
+        if (profilePicture) {
+            const fileName = await this.storageService.uploadFile(profilePicture);
+            body['profilePicture'] = fileName
+        }
+
+        const updateUser = await this.prisma.user.update({
             where: { id: id },
             data: body,
             select: {
@@ -145,7 +152,45 @@ export class UsersService {
                 id: true
             }
         })
+
+        if (updateUser.profilePicture) {
+            updateUser.profilePicture = `${process.env.BASE_URL}/storage/preview/${updateUser.profilePicture}`
+        }
+
+        return updateUser
     }
+
+    async getNickName(
+        userId: number,
+        otherUserId: number
+    ) {
+        const nickName = await this.prisma.nickname.findFirst({
+            where: {
+                OR: [
+                    {
+                        user1Id: userId,
+                        user2Id: otherUserId
+                    },
+                    {
+                        user2Id: userId,
+                        user1Id: otherUserId
+                    }
+                ]
+            }
+        })
+
+        if (!nickName) {
+            return {
+                myNickNmae: undefined,
+                otherUserNickName: undefined
+            };
+        }
+        return {
+            myNickName: userId === nickName.user1Id ? nickName.nickName1 : nickName.nickName2,
+            otherUserNickName: otherUserId === nickName.user1Id ? nickName.nickName1 : nickName.nickName2
+        }
+    }
+
 
     async getAllUser({
         roles
@@ -175,19 +220,19 @@ export class UsersService {
 
     }
 
-    async searchUsers(lastName?: string) {
-        if (!lastName || lastName.trim() === '') {
+    async searchUsers(firstName?: string) {
+        if (!firstName || firstName.trim() === '') {
             return this.prisma.user.findMany({
                 orderBy: {
-                    lastName: 'asc',
+                    firstName: 'asc',
                 },
             });
         }
 
         const users = await this.prisma.user.findMany({
             where: {
-                lastName: {
-                    equals: lastName,
+                firstName: {
+                    contains: firstName,
                     mode: 'insensitive',
                 },
             },
@@ -199,7 +244,7 @@ export class UsersService {
         if (!users.length) {
             return this.prisma.user.findMany({
                 orderBy: {
-                    lastName: 'asc',
+                    firstName: 'asc',
                 },
             });
         }
@@ -207,6 +252,20 @@ export class UsersService {
         return users;
     }
 
+    async getUsersByRole(role: Role) {
+        return this.prisma.user.findMany({
+            where: { role },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                contact: true,
+                role: true,
+
+            }
+        })
+    }
+
+
 }
-
-

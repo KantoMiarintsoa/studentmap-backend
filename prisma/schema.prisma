@@ -21,22 +21,30 @@ enum Role {
 }
 
 model User {
-  id             Int      @id @default(autoincrement())
-  email          String   @unique
-  firstName      String
-  lastName       String
-  password       String   @db.Text
-  contact        String
-  profilePicture String?
-  address        String?
-  preference     String[]
-
-  role          Role            @default(STUDENT)
-  Accommodation Accommodation[]
-  University    University[]
-  Event         Event[]
-  EventStudent  EventStudent[]
-  createdAt     DateTime        @default(now())
+  id                   Int                    @id @default(autoincrement())
+  email                String                 @unique
+  firstName            String
+  lastName             String
+  password             String                 @db.Text
+  contact              String
+  profilePicture       String?
+  address              String?
+  preference           String[]
+  username             String?
+  role                 Role                   @default(STUDENT)
+  Accommodation        Accommodation[]
+  University           University[]
+  Event                Event[]
+  EventStudent         EventStudent[]
+  createdAt            DateTime               @default(now())
+  sentMessages         Messages[]             @relation("SentMessages")
+  receivedMessages     Messages[]             @relation("ReceivedMessages")
+  Nickname             Nickname[]
+  Nickname1            Nickname[]             @relation("User1Nicknames")
+  Nickname2            Nickname[]             @relation("User2Nicknames")
+  pictureAccommodation PictureAccommodation[]
+  UserService          UserService[]
+  serviceRemainders    Int                    @default(0)
 }
 
 model Accommodation {
@@ -118,4 +126,76 @@ enum EventType {
   STUDENT_FAIR
   FORUM
   cCONFERENCE
+}
+
+model Messages {
+  id              Int         @id @default(autoincrement())
+  senderId        Int
+  sender          User        @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId      Int
+  receiver        User        @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  content         String
+  messageType     MessageType @default(TEXT)
+  filename        String?
+  createdAt       DateTime    @default(now())
+  replyMessageId  Int?
+  replyTo         Messages?   @relation("ReplyToMessage", fields: [replyMessageId], references: [id])
+  replyToMessages Messages[]  @relation("ReplyToMessage")
+  isRead          Boolean     @default(false)
+}
+
+enum MessageType {
+  TEXT
+  VIDEO
+  IMAGE
+  FILE
+  AUDIO
+}
+
+model Nickname {
+  id        Int     @id @default(autoincrement())
+  user1Id   Int
+  user2Id   Int
+  user1     User    @relation("User1Nicknames", fields: [user1Id], references: [id])
+  user2     User    @relation("User2Nicknames", fields: [user2Id], references: [id])
+  nickName1 String?
+  nickName2 String?
+  User      User?   @relation(fields: [userId], references: [id])
+  userId    Int?
+
+  @@unique([user1Id, user2Id])
+}
+
+enum ServiceType {
+  STANDARD
+  PREMIUM
+  ENTERPRISE
+}
+
+model Service {
+  id              Int           @id @default(autoincrement())
+  name            ServiceType   @unique
+  description     String
+  price           Int
+  maxAccomodation Int
+  durationDays    Int
+  createdAt       DateTime      @default(now())
+  UserService     UserService[]
+}
+
+model UserService {
+  id         Int      @id @default(autoincrement())
+  ownerId    Int
+  owner      User     @relation(fields: [ownerId], references: [id])
+  serviceId  Int
+  service    Service  @relation(fields: [serviceId], references: [id])
+  registerAt DateTime @default(now())
+}
+
+model PictureAccommodation {
+  id         Int      @id @default(autoincrement())
+  ownerId    Int
+  owner      User?    @relation(fields: [ownerId], references: [id])
+  pictureUrl String
+  uploadAt   DateTime @default(now())
 }

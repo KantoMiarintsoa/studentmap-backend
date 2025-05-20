@@ -62,12 +62,13 @@ export class UniversityController {
     }
 
 
-    @Get("search")
+    @Get("filter")
     @UseGuards(AuthGuard)
     async getUniversitiesByType(
-        @Query('type') type?: string
+        @Query('type') type?: string,
+        @Query("name") name?: string
     ) {
-        return await this.universityService.searchUniversity(type);
+        return await this.universityService.filterUniversity(type, name);
     }
 
     @Get("compare/mentions")
@@ -78,5 +79,7 @@ export class UniversityController {
 
         return this.universityService.compareUniversities(mentionArray)
     }
+
+
 }
 

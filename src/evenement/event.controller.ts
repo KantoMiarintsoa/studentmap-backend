@@ -64,9 +64,10 @@ export class EventController {
     }
 
     @Get('search')
-    async searchEventByName(
+    async searchUser(
         @Query('name') name: string
     ) {
-        return this.eventService.searchEventsByName(name)
+        console.log(name);
+        return this.eventService.searcEventByName(name)
     }
 }

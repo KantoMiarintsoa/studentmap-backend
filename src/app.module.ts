@@ -15,6 +15,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ExportService } from './export/export.service';
 import { ExportModule } from './export/export.module';
 import { EmailModule } from './email/email.module';
+import { MessagesModule } from './messages/messages.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -28,7 +30,9 @@ import { EmailModule } from './email/email.module';
     BackupModule,
     ScheduleModule.forRoot(),
     ExportModule,
-    EmailModule
+    EmailModule,
+    MessagesModule,
+    StorageModule
   ],
   controllers: [AppController],
   providers: [AppService, ExportService],

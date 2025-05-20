@@ -15,6 +15,4 @@ export class UserRegisterDTO {
 
     @IsString()
     password: string
-
-
 }

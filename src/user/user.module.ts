@@ -6,6 +6,9 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { AuthModule } from 'src/auth/auth.module';
 import { AuthService } from 'src/auth/auth.service';
 import { EmailModule } from 'src/email/email.module';
+import { StorageModule } from 'src/storage/storage.module';
+import { CommonModule } from 'src/common/common.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   controllers: [UsersController],
@@ -13,7 +16,7 @@ import { EmailModule } from 'src/email/email.module';
   exports: [UsersService],
   imports: [
     forwardRef(() => AuthModule),
-    EmailModule
+    EmailModule, StorageModule, CommonModule, JwtModule
   ],
 
 

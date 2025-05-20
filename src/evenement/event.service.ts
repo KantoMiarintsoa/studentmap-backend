@@ -180,35 +180,36 @@ export class EventService {
         return registration
     }
 
-    async searchEventsByName(name?: string) {
+    async searcEventByName(name?: string) {
         if (!name || name.trim() === '') {
             return this.prisma.event.findMany({
                 orderBy: {
-                    name: 'asc'
-                }
+                    name: 'asc',
+                },
             });
         }
 
         const events = await this.prisma.event.findMany({
             where: {
                 name: {
-                    equals: name,
+                    contains: name,
                     mode: 'insensitive',
                 },
             },
             orderBy: {
-                name: 'asc'
-            }
-        })
+                name: 'asc',
+            },
+        });
 
-        if (!events.length) {
+        if (!name.length) {
             return this.prisma.event.findMany({
                 orderBy: {
-                    name: 'asc'
-                }
-            })
+                    name: 'asc',
+                },
+            });
         }
-        return events
+
+        return events;
     }
 }
 

@@ -137,43 +137,45 @@ export class UniversityService {
 
 
 
-    async searchUniversity(type?: string) {
-        if (!type || type.trim() === "") {
-            return await this.prisma.university.findMany({
-                orderBy: {
-                    id: "asc"
-                }
-            });
+    async filterUniversity(type?: string, name?: string) {
+        const whereClause: any = {};
+
+        if (type && type.trim() !== "") {
+            const typeValues = Object.values(TypeUniversity);
+            const normalizedType = type.toLowerCase();
+
+            if (!typeValues.includes(normalizedType as TypeUniversity)) {
+                throw new BadRequestException({
+                    message: "Invalid university type"
+                });
+            }
+
+            whereClause.type = normalizedType as TypeUniversity;
         }
 
-        const typeValues = Object.values(TypeUniversity)
-        const normalizedType = type.toLowerCase();
-
-        if (!typeValues.includes(normalizedType as TypeUniversity)) {
-            throw new BadRequestException({
-                messsage: "invalid university"
-            })
+        if (name && name.trim() !== "") {
+            whereClause.name = {
+                contains: name,
+                mode: "insensitive"
+            };
         }
+
         const universities = await this.prisma.university.findMany({
-            where: {
-                type: {
-                    equals: normalizedType as TypeUniversity
-                }
-            },
+            where: whereClause,
             orderBy: {
                 id: "asc"
             }
-        })
+        });
 
-        // if (!universities.length) {
-        //     throw new NotFoundException({
-        //         message: "No universities found for this type"
-        //     });
-        // }
+        if (!universities.length) {
+            throw new NotFoundException({
+                message: "No universities found"
+            });
+        }
 
-
-        return universities
+        return universities;
     }
+
 
     async compareUniversities(mentions: string[]) {
         if (!mentions || mentions.length === 0) {

@@ -59,6 +59,6 @@ export class AccommodationController {
     async getAccommodationsByType(
         @Query("type") type?: string
     ) {
-        return await this.accommodationservice.searchAccommodation(type)
+        return await this.accommodationservice.sortByAccommodation(type)
     }
 }

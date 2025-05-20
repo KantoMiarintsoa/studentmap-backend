@@ -157,7 +157,7 @@ export class AccommodationService {
     }
 
 
-    async searchAccommodation(type?: string) {
+    async sortByAccommodation(type?: string) {
         if (!type || type.trim() === "") {
             return await this.prisma.accommodation.findMany({
                 orderBy: {
@@ -190,13 +190,6 @@ export class AccommodationService {
 
         return accommodations
     }
-
-
-
-
-
-
-
 
 }
 

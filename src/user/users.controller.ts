@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, ParseFilePipeBuilder, Post, Put, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UserRegisterDTO } from './dto/users.dto';
 import { UsersService } from './users.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UserUpdateDTO } from './dto/update-user.dto';
 import { RoleGuard } from 'src/auth/role.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Role } from '@prisma/client';
 
 @Controller('users')
 export class UsersController {
@@ -27,13 +29,24 @@ export class UsersController {
         return await this.userservice.findById(parseInt(id))
     }
 
-    @Put(':id/udpdate')
+    @Put(':id/update')
     @UseGuards(AuthGuard)
+    @UseInterceptors(FileInterceptor("profilePicture"))
     async updateUser(
         @Req() req: { user: { id: number } },
-        @Body() data: UserUpdateDTO
+        @Body() data: UserUpdateDTO,
+        @UploadedFile(
+            new ParseFilePipeBuilder()
+                .addMaxSizeValidator({ maxSize: 25 * 1024 * 1024 })
+                .build({
+                    fileIsRequired: false,
+                    errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+                })
+        )
+        profilePicture?: Express.Multer.File
     ) {
-        return await this.userservice.updateUser(req.user.id, data)
+        console.log(data)
+        return await this.userservice.updateUser(req.user.id, data, profilePicture)
     }
 
     @Get('lists')
@@ -70,8 +83,16 @@ export class UsersController {
 
     @Get('search')
     async searchUser(
-        @Query('lastName') lastname: string
+        @Query('firstName') firstName: string
     ) {
-        return this.userservice.searchUsers(lastname)
+        console.log(firstName);
+        return this.userservice.searchUsers(firstName)
+    }
+
+    @Get('sort/role')
+    async getUsersByRoles(
+        @Query('roles') role: string
+    ) {
+        return this.userservice.getUsersByRole(role as Role)
     }
 }
