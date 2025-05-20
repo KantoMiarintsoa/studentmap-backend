@@ -45,6 +45,15 @@ export class UsersService {
         return user
     }
 
+    async handleEmail(email: string): Promise<{ exists: boolean }> {
+
+        const user = await this.prisma.user.findUnique({
+            where: { email }
+        })
+        console.log(user);
+        return { exists: user !== null }
+    }
+
     async sendResetCode(email: string) {
         const user = await this.prisma.user.findUnique({ where: { email } });
 

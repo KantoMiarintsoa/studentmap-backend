@@ -95,4 +95,11 @@ export class UsersController {
     ) {
         return this.userservice.getUsersByRole(role as Role)
     }
+
+    @Get('check-email')
+    async handleEMail(
+        @Query('email') email: string
+    ) {
+        return await this.userservice.handleEmail(email)
+    }
 }
