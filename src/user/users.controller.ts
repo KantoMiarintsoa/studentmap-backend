@@ -14,8 +14,10 @@ export class UsersController {
     ) { }
 
     @Post('register')
+    @UseInterceptors(FileInterceptor("profilePicture"))
     async register(
-        @Body() data: UserRegisterDTO
+        @Body() data: UserRegisterDTO,
+        @UploadedFile() file?: Express.Multer.File
     ) {
         return await this.userservice.createUser(data)
     }

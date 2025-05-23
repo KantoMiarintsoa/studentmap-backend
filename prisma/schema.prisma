@@ -45,6 +45,17 @@ model User {
   pictureAccommodation PictureAccommodation[]
   UserService          UserService[]
   serviceRemainders    Int                    @default(0)
+  oAuthTokens          OAuthToken[]
+  provider             String?
+  googleAccessToken    String?
+}
+
+model OAuthToken {
+  id          Int      @id @default(autoincrement())
+  accessToken String   @unique
+  expiresAt   DateTime
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model Accommodation {
@@ -61,6 +72,7 @@ model Accommodation {
   ownerId           Int
   owner             User    @relation(fields: [ownerId], references: [id])
   type              Type
+  description       String?
 }
 
 enum Type {

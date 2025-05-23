@@ -4,15 +4,18 @@ import { AddAccomodationDTO } from './dto/accommodation.dto';
 import { Type as AccommodationType } from '@prisma/client';
 import { UpdateAccommodationDTO } from './dto/update.dto';
 import { EmailService } from 'src/email/email.service';
+import { da } from '@faker-js/faker/.';
+import { StorageService } from 'src/storage/storage.service';
 
 @Injectable()
 export class AccommodationService {
     constructor(
         private prisma: PrismaService,
-        private emailService: EmailService
+        private emailService: EmailService,
+        private storageService: StorageService
     ) { }
 
-    async addAccomodation(data: AddAccomodationDTO, userId: number) {
+    async addAccomodation(data: AddAccomodationDTO, userId: number, media?: Array<Express.Multer.File>) {
         const accommodationExist = await this.prisma.accommodation.findFirst({
             where: { address: data.address },
         },
@@ -40,6 +43,15 @@ export class AccommodationService {
             });
         }
 
+        const mediaUrl = [];
+
+        if (media && media.length > 0) {
+            media.forEach(async file => {
+                const fileName = await this.storageService.uploadFile(file);
+                mediaUrl.push(fileName);
+            });
+        }
+
         const accommodation = this.prisma.accommodation.create({
             data: {
                 name: data.name,
@@ -50,9 +62,14 @@ export class AccommodationService {
                 rentMin: data.rentMin,
                 rentMax: data.rentMax,
                 type: data.type,
+                description: data.description,
+                media: {
+                    images: mediaUrl
+                },
                 owner: { connect: { id: ownerId } }
             }
         })
+        console.log(accommodation)
 
         const users = await this.prisma.user.findMany({
             where: {
