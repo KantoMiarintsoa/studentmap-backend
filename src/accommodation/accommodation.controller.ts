@@ -65,4 +65,13 @@ export class AccommodationController {
     ) {
         return await this.accommodationservice.sortByAccommodation(type)
     }
+
+    @Get('owner')
+    @UseGuards(AuthGuard, new RoleGuard(['OWNER']))
+    async getAccommodationsOwner(
+        @Req() req: { user: { id: number } }
+    ) {
+        const userId = req.user.id
+        return this.accommodationservice.GetAccommodationsByOwner(userId)
+    }
 }

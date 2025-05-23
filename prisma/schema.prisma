@@ -59,20 +59,21 @@ model OAuthToken {
 }
 
 model Accommodation {
-  id                Int     @id @default(autoincrement())
+  id                Int       @id @default(autoincrement())
   name              String
   address           String
   area              Float
   receptionCapacity String
-  IsAvailable       Boolean @default(false)
+  IsAvailable       Boolean   @default(false)
   rentMin           Float
   rentMax           Float
-  currency          String  @default("Ar")
+  currency          String    @default("Ar")
   media             Json?
   ownerId           Int
-  owner             User    @relation(fields: [ownerId], references: [id])
+  owner             User      @relation(fields: [ownerId], references: [id])
   type              Type
   description       String?
+  createdAt         DateTime? @default(now())
 }
 
 enum Type {

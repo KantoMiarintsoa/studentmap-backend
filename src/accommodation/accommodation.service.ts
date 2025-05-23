@@ -156,8 +156,19 @@ export class AccommodationService {
 
     async GetAllAccommodations() {
         return await this.prisma.accommodation.findMany()
-
     }
+
+    async GetAccommodationsByOwner(userId: number) {
+        return await this.prisma.accommodation.findMany({
+            where: {
+                ownerId: userId,
+            },
+            orderBy: {
+                id: 'desc',
+            },
+        });
+    }
+
 
     async deleteAccommodation(id: number) {
         const accommodation = await this.prisma.accommodation.findUnique({
