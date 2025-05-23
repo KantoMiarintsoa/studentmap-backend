@@ -45,7 +45,7 @@ export class UsersController {
         )
         profilePicture?: Express.Multer.File
     ) {
-        console.log(data)
+        console.log(profilePicture);
         return await this.userservice.updateUser(req.user.id, data, profilePicture)
     }
 

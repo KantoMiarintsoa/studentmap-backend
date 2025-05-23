@@ -39,9 +39,9 @@ export class UsersService {
             }
         });
 
-        this.emailService.sendEmailAfterRegister({
-            email: user.email
-        })
+        // this.emailService.sendEmailAfterRegister({
+        //     email: user.email
+        // })
         return user
     }
 
@@ -162,9 +162,9 @@ export class UsersService {
             }
         })
 
-        if (updateUser.profilePicture) {
-            updateUser.profilePicture = `${process.env.BASE_URL}/storage/preview/${updateUser.profilePicture}`
-        }
+        // if (updateUser.profilePicture) {
+        //     updateUser.profilePicture = `${process.env.BASE_URL}/storage/preview/${updateUser.profilePicture}`
+        // }
 
         return updateUser
     }
