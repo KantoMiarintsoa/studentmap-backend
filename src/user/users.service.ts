@@ -17,6 +17,16 @@ export class UsersService {
         private storageService: StorageService
     ) { }
 
+    async findOrCreate(googleUser: any): Promise<User> {
+        const user = await this.findByEmail(googleUser.email)
+
+        if (user) {
+            return user
+        }
+        return await this.createUser(googleUser)
+
+    }
+
     async createUser(data: UserRegisterDTO) {
         const userExist = await this.prisma.user.findUnique({
             where: { email: data.email }
@@ -35,7 +45,9 @@ export class UsersService {
                 lastName: data.lastName,
                 email: data.email,
                 contact: data.contact,
-                password: hashedPasssword
+                password: hashedPasssword,
+                profilePicture: data.profilePicture,
+                role: data.role
             }
         });
 
@@ -275,6 +287,8 @@ export class UsersService {
             }
         })
     }
+
+
 
 
 }

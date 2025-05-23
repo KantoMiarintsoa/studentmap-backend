@@ -48,6 +48,6 @@ export class Gateway {
         const createdMessage = await this.messageService.createMessage(message, user.id)
 
         client.to(`user_${receiverId}`).emit("newMessage", createdMessage)
-        client.emit("new-message", { ...createdMessage, isSender: true })
+        client.emit("newMessage", { ...createdMessage, isSender: true })
     }
 }

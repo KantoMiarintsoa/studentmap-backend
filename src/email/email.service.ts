@@ -27,7 +27,7 @@ export class EmailService {
             from: '"StudentMap" <no-reply@studentMap.com>',
             to: email,
             subject: "welcome to studentMap",
-            text: "welcome to studentMap 🥹"
+            text: "welcome to studentMap "
         };
         try {
             const info = await this.transporter.sendMail(mailOptions)
@@ -36,7 +36,7 @@ export class EmailService {
         }
         catch (error) {
             console.error('Error sending email: ', error);
-            throw new Error('Email sending failed');
+            // throw new Error('Email sending failed');
         }
     }
 
@@ -67,7 +67,7 @@ export class EmailService {
         const mailOptions = {
             from: '"StudentMap" <no-reply@studentmap.com>',
             to: email,
-            subject: '📩 Notification from StudentMap',
+            subject: ' Notification from StudentMap',
             html
         };
 

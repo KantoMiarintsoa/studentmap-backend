@@ -1,6 +1,6 @@
 import { Type, User } from "@prisma/client";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsString } from "class-validator";
 
 export class AddAccomodationDTO {
     @IsString()
@@ -9,7 +9,6 @@ export class AddAccomodationDTO {
     @IsString()
     address: string
 
-    @IsNumber()
     @Transform(({ value }) => {
         if (typeof value === "string") {
             const num = parseFloat(value);
@@ -17,6 +16,7 @@ export class AddAccomodationDTO {
         }
         return value;
     })
+    @IsNumber()
     area: number
 
     @IsString()
@@ -26,13 +26,19 @@ export class AddAccomodationDTO {
     @IsString()
     receptionCapacity: string
 
+    @IsOptional()
+    @IsString()
+    description: string
+
     @IsBoolean()
     @Transform(({ value }) => value === "true" || value === true)
     IsAvailable: boolean = false
 
+    @Transform(({ value }) => parseInt(value))
     @IsNumber()
     rentMin: number
 
+    @Transform(({ value }) => parseInt(value))
     @IsNumber()
     rentMax: number
 
@@ -40,11 +46,12 @@ export class AddAccomodationDTO {
     @IsEnum(Type)
     type: Type
 
+    @Transform(({ value }) => value ? parseInt(value) : undefined)
     @IsInt()
     @IsOptional()
     ownerId?: number
 
-
-
-
+    // @IsOptional()
+    // @IsObject()
+    // media?: object
 }

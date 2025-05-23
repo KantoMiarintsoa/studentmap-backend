@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Query, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AccommodationService } from './accommodation.service';
 import { AddAccomodationDTO } from './dto/accommodation.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UpdateAccommodationDTO } from './dto/update.dto';
 import { RoleGuard } from 'src/auth/role.guard';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('accommodation')
 export class AccommodationController {
@@ -13,12 +14,15 @@ export class AccommodationController {
 
     @Post('add')
     @UseGuards(AuthGuard, new RoleGuard(["ADMIN", "OWNER"]))
+    @UseInterceptors(FilesInterceptor("media"))
     async addAccommodation(
         @Req() req: { user: { id: number } },
-        @Body() data: AddAccomodationDTO
+        @Body() data: AddAccomodationDTO,
+        @UploadedFiles() files?: Array<Express.Multer.File>
 
     ) {
-        return await this.accommodationservice.addAccomodation(data, req.user.id)
+        console.log(files);
+        return await this.accommodationservice.addAccomodation(data, req.user.id, files);
     }
 
     @Get(':id/details')

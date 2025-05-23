@@ -1,6 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,7 +15,8 @@ async function bootstrap() {
     credentials: true
   })
 
-  app.useGlobalPipes(new ValidationPipe())
-  await app.listen(process.env.PORT ?? 3003, '0.0.0.0');
+  app.useGlobalPipes(new ValidationPipe({ transform: true }))
+  // app.useGlobalPipes(new TransformPI)
+  await app.listen(process.env.PORT ?? 3003);
 }
 bootstrap();
