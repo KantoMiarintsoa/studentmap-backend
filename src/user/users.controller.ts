@@ -6,6 +6,7 @@ import { UserUpdateDTO } from './dto/update-user.dto';
 import { RoleGuard } from 'src/auth/role.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Role } from '@prisma/client';
+import { BuyCreditDto } from './dto/buy-credit.dto';
 
 @Controller('users')
 export class UsersController {
@@ -29,6 +30,14 @@ export class UsersController {
         @Param("id") id: string
     ) {
         return await this.userservice.findById(parseInt(id))
+    }
+
+    @Get('me')
+    @UseGuards(AuthGuard)
+    async getMe(
+        @Req() req: { user: { id: number } },
+    ) {
+        return await this.userservice.findById(req.user.id);
     }
 
     @Put(':id/update')
@@ -103,5 +112,41 @@ export class UsersController {
         @Query('email') email: string
     ) {
         return await this.userservice.handleEmail(email)
+    }
+
+    @Post('payment/setup-intent')
+    @UseGuards(AuthGuard, new RoleGuard(["OWNER"]))
+    async setupIntent(
+        @Req() req: { user: { id: number } }
+    ){
+        return await this.userservice.createSetupIntent(req.user.id);
+    }
+
+    @Get('payment/payment-methods')
+    @UseGuards(AuthGuard, new RoleGuard(["OWNER"]))
+    async listPaymentMethods(
+        @Req() req: { user:{id:number}}
+    ){
+        return await this.userservice.listPaymentMethods(req.user.id);
+    }
+
+    @Delete('payment/payment-methods/:id')
+    @UseGuards(AuthGuard, new RoleGuard(["OWNER"]))
+    async removePaymentMethod(
+        @Param('id') id: string
+    ){
+        return await this.userservice.removePaymentMethod(id);
+    }
+
+    @Post('payment/buy-credits')
+    @UseGuards(AuthGuard, new RoleGuard(["OWNER"]))
+    async buyCredit(
+        @Body() body: BuyCreditDto,
+        @Req() req:{user:{id:number}}
+    ){
+        return await this.userservice.buyCredit(
+            body,
+            req.user.id
+        );
     }
 }

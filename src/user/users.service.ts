@@ -6,6 +6,8 @@ import { Role, User } from '@prisma/client';
 import { UserUpdateDTO } from './dto/update-user.dto';
 import { EmailService } from 'src/email/email.service';
 import { StorageService } from 'src/storage/storage.service';
+import { StripeService } from 'src/common/stripe.service';
+import { BuyCreditDto } from './dto/buy-credit.dto';
 
 @Injectable()
 export class UsersService {
@@ -14,7 +16,8 @@ export class UsersService {
         @Inject(forwardRef(() => PrismaService))
         private readonly prisma: PrismaService,
         private emailService: EmailService,
-        private storageService: StorageService
+        private storageService: StorageService,
+        private readonly stripeService: StripeService
     ) { }
 
     async findOrCreate(googleUser: any): Promise<User> {
@@ -288,7 +291,84 @@ export class UsersService {
         })
     }
 
+    async createSetupIntent(userId:number){
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId }
+        })
 
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
 
+        let customerId = user.stripeCustomerId;
 
+        if (!customerId) {
+            customerId = await this.stripeService.createCustomer(user.email, `${user.firstName} ${user.lastName}`);
+            await this.prisma.user.update({
+                where: { id: userId },
+                data: { stripeCustomerId: customerId }
+            });
+        }
+
+        const data = await this.stripeService.createSetupIntent(customerId);
+        return {
+            clientSecret:data.client_secret
+        }
+    }
+
+    async listPaymentMethods(userId: number) {
+        const user = await this.prisma.user.findUnique({
+            where:{id:userId}
+        });
+
+        if(!user) {
+            throw new NotFoundException('User or Stripe customer not found');
+        }
+
+        if(!user.stripeCustomerId){
+            return [];
+        }
+
+        const paymentMethods = await this.stripeService.listPaymentMethods(user.stripeCustomerId);
+
+        return paymentMethods.data.map(pm=>({
+            id:pm.id,
+            card:pm.card
+        }));
+    }
+
+    async removePaymentMethod(paymentMethodId:string){
+        await this.stripeService.removePaymentMethod(paymentMethodId);
+        return { message: "Payment method removed successfully" };
+    }
+
+    async buyCredit(data:BuyCreditDto, userId:number){
+        const user = await this.prisma.user.findUnique({
+            where:{id:userId}
+        });
+
+        if(!user || !user.stripeCustomerId){
+            throw new NotFoundException({
+                message:"user not found"
+            });
+        }
+
+        await this.stripeService.createPaymentIntent(
+            data.credits * 10,
+            'usd',
+            user.stripeCustomerId,
+            data.paymentMethod
+        );
+
+        const newCredit = (await this.prisma.user.update({
+            where: {id:userId},
+            data:{
+                serviceRemainders:{
+                    increment:data.credits
+                }
+            }
+        })).serviceRemainders;
+
+        return {credits: newCredit};
+    }
 }
