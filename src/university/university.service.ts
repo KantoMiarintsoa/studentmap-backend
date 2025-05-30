@@ -39,7 +39,8 @@ export class UniversityService {
                 webSite: data.webSite,
                 mention: data.mention || [],
                 address: data.address,
-                city: data.city
+                city: data.city,
+                localisation: data.localisation
 
             }
         })
@@ -137,7 +138,7 @@ export class UniversityService {
 
 
 
-    async filterUniversity(type?: string, name?: string) {
+    async filterUniversity(type?: string, name?: string, address?: string) {
         const whereClause: any = {};
 
         if (type && type.trim() !== "") {
@@ -156,6 +157,12 @@ export class UniversityService {
         if (name && name.trim() !== "") {
             whereClause.name = {
                 contains: name,
+                mode: "insensitive"
+            };
+        }
+        if (address && address.trim() !== "") {
+            whereClause.address = {
+                contains: address,
                 mode: "insensitive"
             };
         }
@@ -210,4 +217,6 @@ export class UniversityService {
         return universities
     }
 }
+
+
 

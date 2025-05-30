@@ -15,7 +15,6 @@ export class MessagesService {
         const test = await this.prisma.user.findFirstOrThrow({
             where: { id: data.receiverId }
         })
-        console.log(test, 'le user mandray it');
 
 
         const message = await this.prisma.messages.create({
@@ -113,8 +112,8 @@ export class MessagesService {
                 lastConversationMap.set(key, message)
             }
         }
-        return paginate({ data: Array.from(lastConversationMap.values()), page })
-
+        // return paginate({ data: Array.from(lastConversationMap.values()), page })
+        return lastConversationMap.values();
     }
 
     async getNickName(
@@ -212,10 +211,13 @@ export class MessagesService {
                 }
             }
         })
-        return paginate({
-            data: conversation.map(message => ({
-                ...message, isSender: message.senderId === userId
-            })), page
-        });
+        // return paginate({
+        //     data: conversation.map(message => ({
+        //         ...message, isSender: message.senderId === userId
+        //     })), page
+        // });
+        return conversation.map(message => ({
+            ...message, isSender: message.senderId === userId
+        }))
     }
 }

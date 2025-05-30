@@ -6,7 +6,15 @@ import { UpdateAccommodationDTO } from './dto/update.dto';
 import { EmailService } from 'src/email/email.service';
 import { da } from '@faker-js/faker/.';
 import { StorageService } from 'src/storage/storage.service';
+import { contains } from 'class-validator';
+import { haversineDistance } from 'src/common/distance';
 
+interface SearchParams {
+    name?: string;
+    address?: string;
+    type?: string;
+    budget?: number;
+}
 @Injectable()
 export class AccommodationService {
     constructor(
@@ -56,6 +64,8 @@ export class AccommodationService {
             data: {
                 name: data.name,
                 address: data.address,
+                neighborhood: data.neighborhood,
+                city: data.city,
                 area: data.area,
                 receptionCapacity: data.receptionCapacity,
                 IsAvailable: data.IsAvailable,
@@ -185,40 +195,103 @@ export class AccommodationService {
     }
 
 
-    async sortByAccommodation(type?: string) {
-        if (!type || type.trim() === "") {
-            return await this.prisma.accommodation.findMany({
-                orderBy: {
-                    id: "asc"
-                }
-            });
-        }
+    // async sortByAccommodation(type?: string) {
+    //     if (!type || type.trim() === "") {
+    //         return await this.prisma.accommodation.findMany({
+    //             orderBy: {
+    //                 id: "asc"
+    //             }
+    //         });
+    //     }
 
-        // const values = Object.values(Type)
-        const normalizedType = type.trim().toUpperCase();
-        const allowedTypes = Object.values(AccommodationType);
+    //     // const values = Object.values(Type)
+    //     const normalizedType = type.trim().toUpperCase();
+    //     const allowedTypes = Object.values(AccommodationType);
 
 
-        if (!allowedTypes.includes(normalizedType as AccommodationType)) {
-            throw new BadRequestException({
-                messsage: "invalid accommodation"
-            })
-        }
+    //     if (!allowedTypes.includes(normalizedType as AccommodationType)) {
+    //         throw new BadRequestException({
+    //             messsage: "invalid accommodation"
+    //         })
+    //     }
 
-        const accommodations = await this.prisma.accommodation.findMany({
+    //     const accommodations = await this.prisma.accommodation.findMany({
+    //         where: {
+    //             type: {
+    //                 equals: normalizedType as AccommodationType
+    //             }
+    //         },
+    //         orderBy: {
+    //             id: "asc"
+    //         }
+    //     })
+
+    //     return accommodations
+    // }
+
+    async advancedSearch(params: SearchParams) {
+        const { name, address, type, budget } = params;
+
+        const results = await this.prisma.accommodation.findMany({
             where: {
-                type: {
-                    equals: normalizedType as AccommodationType
-                }
+                AND: [
+                    name ? { name: { contains: name, mode: 'insensitive' } } : {},
+                    address ? { address: { contains: address, mode: 'insensitive' } } : {},
+                    type ? { type: type as any } : {},
+                    budget !== undefined
+                        ? {
+                            rentMin: { lte: budget },
+                            rentMax: { gte: budget }
+                        }
+                        : {}
+                ]
             },
             orderBy: {
-                id: "asc"
+                id: 'asc'
             }
-        })
+        });
 
-        return accommodations
+        // if (results.length === 0) {
+        //     throw new NotFoundException('No results found for this search.');
+        // }
+
+        return results;
     }
 
-}
+    // async findNearbyAccommodationsByUniversity(universityId: number, maxDistanceKm = 10) {
+    //     const university = await this.prisma.university.findUnique({
+    //         where: { id: universityId },
+    //         select: { localisation: true, city: true, address: true },
+    //     });
 
+    //     if (!university || !university.localisation) {
+    //         throw new NotFoundException("Université non trouvée ou localisation manquante.");
+    //     }
+
+    //     const [uniLat, uniLon] = university.localisation;
+
+    //     const allAccommodations = await this.prisma.accommodation.findMany({
+    //         where: {
+    //             localisation: { not: null }
+    //         },
+    //     });
+
+    //     const nearby = allAccommodations
+    //         .map((acc) => {
+    //             const [accLat, accLon] = acc.localisation; // idem ici
+
+    //             const distance = haversineDistance(
+    //                 { latitude: uniLat, longitude: uniLon },
+    //                 { latitude: accLat, longitude: accLon }
+    //             );
+
+    //             return { ...acc, distance };
+    //         })
+    //         .filter((acc) => acc.distance <= maxDistanceKm)
+    //         .sort((a, b) => a.distance - b.distance);
+
+    //     return nearby;
+    // }
+
+}
 

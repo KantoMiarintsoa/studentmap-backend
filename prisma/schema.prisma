@@ -63,6 +63,8 @@ model Accommodation {
   id                Int       @id @default(autoincrement())
   name              String
   address           String
+  neighborhood      String?
+  city              String?
   area              Float
   receptionCapacity String
   IsAvailable       Boolean   @default(false)
@@ -75,6 +77,7 @@ model Accommodation {
   type              Type
   description       String?
   createdAt         DateTime? @default(now())
+  localisation      Json?
 }
 
 enum Type {
@@ -85,20 +88,20 @@ enum Type {
 }
 
 model University {
-  id          Int            @id @default(autoincrement())
-  name        String
-  description String
-  city        String?
-  webSite     String
-  mention     String[]
-  type        TypeUniversity
-  // localisation String
-  address     String
+  id           Int            @id @default(autoincrement())
+  name         String
+  description  String
+  city         String?
+  address      String?
+  webSite      String
+  mention      String[]
+  type         TypeUniversity
+  localisation Int[]
   // ownerId     Int
   // owner       User           @relation(fields: [ownerId], references: [id])
-  User        User?          @relation(fields: [userId], references: [id])
-  userId      Int?
-  Event       Event[]
+  User         User?          @relation(fields: [userId], references: [id])
+  userId       Int?
+  Event        Event[]
 }
 
 enum TypeUniversity {
@@ -181,6 +184,7 @@ model Nickname {
 }
 
 enum ServiceType {
+  FREEE
   STANDARD
   PREMIUM
   ENTERPRISE

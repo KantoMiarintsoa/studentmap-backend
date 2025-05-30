@@ -66,9 +66,10 @@ export class UniversityController {
     @UseGuards(AuthGuard)
     async getUniversitiesByType(
         @Query('type') type?: string,
-        @Query("name") name?: string
+        @Query("name") name?: string,
+        @Query('address') address?: string
     ) {
-        return await this.universityService.filterUniversity(type, name);
+        return await this.universityService.filterUniversity(type, name, address);
     }
 
     @Get("compare/mentions")
