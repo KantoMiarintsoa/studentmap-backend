@@ -59,11 +59,16 @@ export class AccommodationController {
     }
 
     @Get("search")
-    @UseGuards(AuthGuard)
-    async getAccommodationsByType(
-        @Query("type") type?: string
+    @UseGuards(AuthGuard, new RoleGuard(['ADMIN', 'STUDENT']))
+    async SearchAdvancedAccommodation(
+        @Query('name') name?: string,
+        @Query('address') address?: string,
+        @Query("type") type?: string,
+        @Query('budget') budget?: string
+
     ) {
-        return await this.accommodationservice.sortByAccommodation(type)
+        const numericBudget = budget ? parseFloat(budget) : undefined
+        return this.accommodationservice.advancedSearch({ name, address, type, budget: numericBudget })
     }
 
     @Get('owner')
