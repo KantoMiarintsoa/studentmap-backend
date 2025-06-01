@@ -25,6 +25,9 @@ export class Gateway {
             client.disconnect();
             return
         }
+
+        const unreadFromSenders = await this.messageService.getUnreadFromSenders(user.id);
+
         client.data.user = user
         client.join(`user_${user.id}`)
     }
@@ -37,7 +40,6 @@ export class Gateway {
     async handleMessage(
         @MessageBody() message: ChatMessage,
         @ConnectedSocket() client: Socket
-
     ) {
         // console.log(message.content)
         // console.log(client.data.user)
@@ -49,5 +51,29 @@ export class Gateway {
 
         client.to(`user_${receiverId}`).emit("newMessage", createdMessage)
         client.emit("newMessage", { ...createdMessage, isSender: true })
+
+        const unreadFromSenders =await this.messageService.getUnreadFromSenders(receiverId);
+
+        client.to(`user_${receiverId}`).emit("unreadFromSenders", unreadFromSenders);
+    }
+
+    @SubscribeMessage("viewMessage")
+    async getViewMessage(
+        @MessageBody() data:{receiverId:number},
+        @ConnectedSocket() client: Socket
+    ){
+        const user = client.data.user as User;
+        const receiverId = data.receiverId;
+
+        const lastMessage = await this.messageService.viewMessage(
+            user.id,
+            receiverId
+        );
+        const unreadFromSenders =await this.messageService.getUnreadFromSenders(user.id);
+
+        client.to(`user_${receiverId}`).emit("messageSeen", lastMessage);
+        client.emit("messageSeen", lastMessage);
+
+        client.emit("unreadFromSenders", unreadFromSenders);
     }
 }

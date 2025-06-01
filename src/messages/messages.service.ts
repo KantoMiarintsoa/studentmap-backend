@@ -199,7 +199,9 @@ export class MessagesService {
                         id: true,
                         email: true,
                         username: true,
-
+                        profilePicture: true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 receiver: {
@@ -207,6 +209,9 @@ export class MessagesService {
                         id: true,
                         email: true,
                         username: true,
+                        profilePicture: true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 replyTo: {
@@ -225,5 +230,55 @@ export class MessagesService {
         return conversation.map(message => ({
             ...message, isSender: message.senderId === userId
         }))
+    }
+
+    async getUnreadFromSenders(
+        userId:number
+    ){
+        const unreadFromSenders = await this.prisma.messages.groupBy({
+            by: ['senderId'],
+            where: {
+                receiverId: userId,
+                isRead: false,
+            },
+            _count: {
+                _all: true,
+            },
+        });
+
+        return {
+            count:unreadFromSenders.length
+        };
+    }
+
+    async viewMessage(
+        userId:number,
+        senderId:number
+    ){
+        // basically, we view every message
+        // we send the state of the last message
+        const messages = await this.prisma.messages.updateMany({
+            where:{
+                receiverId:userId,
+                senderId:senderId
+            },
+            data:{
+                isRead:true
+            }
+        });
+
+        // no message to update
+        if(messages.count===0)
+            return undefined
+
+        return await this.prisma.messages.findFirst({
+            where:{
+                receiverId:userId,
+                senderId:senderId
+            },
+            orderBy:{
+                id:"desc"
+            }
+        })
     }
 }

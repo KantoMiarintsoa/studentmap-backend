@@ -16,6 +16,13 @@ export class MessagesController {
         return await this.messagesService.getLastUsersMessages(req.user.id, parseInt(pages))
     }
 
+    @Get('unread')
+    async getUnreadMessages(
+        @Req() req: { user: { id: number } }
+    ){
+        return await this.messagesService.getUnreadFromSenders(req.user.id);
+    }
+
     @Get('get/:user_id')
     async getConversations(
         @Req() req: { user: { id: number } },
