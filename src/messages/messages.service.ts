@@ -27,14 +27,20 @@ export class MessagesService {
                     select: {
                         id: true,
                         email: true,
-                        username: true
+                        username: true,
+                        profilePicture:true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 receiver: {
                     select: {
                         id: true,
                         email: true,
-                        username: true
+                        username: true,
+                        profilePicture:true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 replyTo: {
@@ -73,7 +79,9 @@ export class MessagesService {
                         id: true,
                         email: true,
                         username: true,
-                        profilePicture: true
+                        profilePicture: true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 receiver: {
@@ -81,7 +89,9 @@ export class MessagesService {
                         id: true,
                         email: true,
                         username: true,
-                        profilePicture: true
+                        profilePicture: true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 content: true,
@@ -97,13 +107,9 @@ export class MessagesService {
 
             const existing = lastConversationMap.get(key)
             if (!existing) {
-                if (message.sender.profilePicture) {
-                    message.sender.profilePicture = `${process.env.BASE_URL}/storage/preview/${message.sender.profilePicture}`
-                }
-
-                if (message.receiver.profilePicture) {
-                    message.receiver.profilePicture = `${process.env.BASE_URL}/storage/preview/${message.receiver.profilePicture}`
-                }
+                // if (message.receiver.profilePicture) {
+                //     message.receiver.profilePicture = `${process.env.BASE_URL}/storage/preview/${message.receiver.profilePicture}`
+                // }
                 const nickName = await this.getNickName(userId, message.sender.id === userId ? message.receiver.id : message.sender.id)
                 message.sender["nickName"] = message.sender.id === userId ? nickName.myNickName : nickName.otherUserNickName
 
@@ -112,8 +118,8 @@ export class MessagesService {
                 lastConversationMap.set(key, message)
             }
         }
-        // return paginate({ data: Array.from(lastConversationMap.values()), page })
-        return lastConversationMap.values();
+        // return paginate({ data: Array.from(lastConversationMap.values()), page }) 
+        return Array.from(lastConversationMap.values())
     }
 
     async getNickName(
