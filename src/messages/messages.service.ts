@@ -220,4 +220,13 @@ export class MessagesService {
             ...message, isSender: message.senderId === userId
         }))
     }
+
+    async countSeenMessage(userId: number) {
+        return this.prisma.messages.count({
+            where: {
+                receiverId: userId,
+                isRead: true
+            }
+        })
+    }
 }

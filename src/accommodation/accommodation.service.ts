@@ -9,12 +9,15 @@ import { StorageService } from 'src/storage/storage.service';
 import { contains } from 'class-validator';
 import { haversineDistance } from 'src/common/distance';
 
+
+
 interface SearchParams {
     name?: string;
     address?: string;
     type?: string;
     budget?: number;
 }
+
 @Injectable()
 export class AccommodationService {
     constructor(
@@ -258,40 +261,55 @@ export class AccommodationService {
         return results;
     }
 
-    // async findNearbyAccommodationsByUniversity(universityId: number, maxDistanceKm = 10) {
-    //     const university = await this.prisma.university.findUnique({
-    //         where: { id: universityId },
-    //         select: { localisation: true, city: true, address: true },
-    //     });
-
-    //     if (!university || !university.localisation) {
-    //         throw new NotFoundException("Université non trouvée ou localisation manquante.");
-    //     }
-
-    //     const [uniLat, uniLon] = university.localisation;
-
-    //     const allAccommodations = await this.prisma.accommodation.findMany({
-    //         where: {
-    //             localisation: { not: null }
-    //         },
-    //     });
-
-    //     const nearby = allAccommodations
-    //         .map((acc) => {
-    //             const [accLat, accLon] = acc.localisation; // idem ici
-
-    //             const distance = haversineDistance(
-    //                 { latitude: uniLat, longitude: uniLon },
-    //                 { latitude: accLat, longitude: accLon }
-    //             );
-
-    //             return { ...acc, distance };
-    //         })
-    //         .filter((acc) => acc.distance <= maxDistanceKm)
-    //         .sort((a, b) => a.distance - b.distance);
-
-    //     return nearby;
+    // private haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    //     const R = 6371;
+    //     const dLat = (lat2 - lat1) * Math.PI / 180;
+    //     const dLon = (lon2 - lon1) * Math.PI / 180;
+    //     const a =
+    //         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    //         Math.cos(lat1 * Math.PI / 180) *
+    //         Math.cos(lat2 * Math.PI / 180) *
+    //         Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    //     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    //     return R * c;
     // }
 
+    async findAccommodationsNearUniversity(
+        nameUniversity?: string,
+        city?: string,
+        address?: string,
+        budget?: number,
+        type?: AccommodationType
+    ) {
+
+        let searchAddress = city ?? address;
+
+        if (nameUniversity) {
+            const university = await this.prisma.university.findFirst({
+                where: {
+                    name: {
+                        contains: nameUniversity,
+                        mode: 'insensitive',
+                    },
+                },
+            });
+
+            if (!university) {
+                throw new NotFoundException(`University "${nameUniversity}" not found`);
+            }
+
+            const { city: uniCity, neighborhood: uniNeighborhood } = university;
+
+            searchAddress = uniNeighborhood;
+        }
+
+        const results = await this.advancedSearch({
+            address: searchAddress,
+            budget,
+            type
+        });
+
+        return results
+    }
 }
 

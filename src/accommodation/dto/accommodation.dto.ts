@@ -57,8 +57,8 @@ export class AddAccomodationDTO {
     @IsString()
     neighborhood: string
 
-    @IsInt()
-    localisation: [number, number]
+    // @IsInt()
+    // localisation: [number, number]
 
 
     // @IsOptional()

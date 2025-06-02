@@ -60,7 +60,7 @@ export class AccommodationController {
 
     @Get("search")
     @UseGuards(AuthGuard, new RoleGuard(['ADMIN', 'STUDENT']))
-    async SearchAdvancedAccommodation(
+    async searchAdvancedAccommodation(
         @Query('name') name?: string,
         @Query('address') address?: string,
         @Query("type") type?: string,
@@ -70,6 +70,28 @@ export class AccommodationController {
         const numericBudget = budget ? parseFloat(budget) : undefined
         return this.accommodationservice.advancedSearch({ name, address, type, budget: numericBudget })
     }
+
+
+
+    @Get("advanced-search")
+    @UseGuards(AuthGuard, new RoleGuard(['ADMIN']))
+    async searchAdvancedAccommodationStudent(
+        @Query('nameUniversity') nameUniversity?: string,
+        @Query('city') city?: string,
+        @Query('address') address?: string,
+        @Query("type") type?: string,
+        @Query('budget') budget?: string
+
+    ) {
+        return this.accommodationservice.findAccommodationsNearUniversity(
+            nameUniversity,
+            city,
+            address,
+            budget && parseFloat(budget),
+            type as any
+        )
+    }
+
 
     @Get('owner')
     @UseGuards(AuthGuard, new RoleGuard(['OWNER']))

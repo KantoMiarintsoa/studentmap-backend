@@ -32,7 +32,7 @@ export class AddUniversityDTO {
     @IsString()
     city: string
 
-    @IsInt()
-    localisation: [number, number]
+    // @IsInt()
+    // localisation: [number, number]
 
 }
