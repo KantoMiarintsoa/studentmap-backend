@@ -265,14 +265,6 @@ export class UsersService {
             },
         });
 
-        if (!users.length) {
-            return this.prisma.user.findMany({
-                orderBy: {
-                    firstName: 'asc',
-                },
-            });
-        }
-
         return users;
     }
 

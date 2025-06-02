@@ -49,7 +49,7 @@ async function main() {
                     rentMax: faker.number.float({ min: 501, max: 1000 }),
                     currency: "Ar",
                     media: {
-                        images: [faker.image.url(), faker.image.url()],
+                        images: [faker.image.url(), faker.image.url(), faker.image.url(), faker.image.url(), faker.image.url()],
                     },
                     ownerId: faker.helpers.arrayElement(users.filter(user => user.role === Role.OWNER)).id,
                     type: faker.helpers.arrayElement(Object.values(Type)),
