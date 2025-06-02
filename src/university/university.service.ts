@@ -40,7 +40,7 @@ export class UniversityService {
                 mention: data.mention || [],
                 address: data.address,
                 city: data.city,
-                localisation: data.localisation
+                // localisation: data.localisation
 
             }
         })
@@ -173,12 +173,6 @@ export class UniversityService {
                 id: "asc"
             }
         });
-
-        if (!universities.length) {
-            throw new NotFoundException({
-                message: "No universities found"
-            });
-        }
 
         return universities;
     }

@@ -4,12 +4,16 @@ import { MessagesService } from "./messages.service";
 import { Server, Socket } from "socket.io";
 import { ChatMessage } from "./dto/chat.dto";
 import { User } from "@prisma/client";
+import { PrismaService } from "src/common/prisma.service";
+import { count } from "console";
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class Gateway {
     constructor(
         private authService: AuthService,
-        private messageService: MessagesService
+        private messageService: MessagesService,
+        private prisma: PrismaService,
+
     ) { }
 
     @WebSocketServer()
@@ -75,5 +79,20 @@ export class Gateway {
         client.emit("messageSeen", lastMessage);
 
         client.emit("unreadFromSenders", unreadFromSenders);
+    }
+
+    @SubscribeMessage("markAsRead")
+    async markAsRead(messageId: number, userId: number) {
+        const message = await this.prisma.messages.findUnique({
+            where: { id: messageId }
+        });
+        if (message || message.receiverId !== userId) {
+            return null
+        }
+
+        return await this.prisma.messages.update({
+            where: { id: messageId },
+            data: { isRead: true }
+        })
     }
 }
