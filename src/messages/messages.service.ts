@@ -27,14 +27,20 @@ export class MessagesService {
                     select: {
                         id: true,
                         email: true,
-                        username: true
+                        username: true,
+                        profilePicture:true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 receiver: {
                     select: {
                         id: true,
                         email: true,
-                        username: true
+                        username: true,
+                        profilePicture:true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 replyTo: {
@@ -73,7 +79,9 @@ export class MessagesService {
                         id: true,
                         email: true,
                         username: true,
-                        profilePicture: true
+                        profilePicture: true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 receiver: {
@@ -81,7 +89,9 @@ export class MessagesService {
                         id: true,
                         email: true,
                         username: true,
-                        profilePicture: true
+                        profilePicture: true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 content: true,
@@ -97,13 +107,9 @@ export class MessagesService {
 
             const existing = lastConversationMap.get(key)
             if (!existing) {
-                if (message.sender.profilePicture) {
-                    message.sender.profilePicture = `${process.env.BASE_URL}/storage/preview/${message.sender.profilePicture}`
-                }
-
-                if (message.receiver.profilePicture) {
-                    message.receiver.profilePicture = `${process.env.BASE_URL}/storage/preview/${message.receiver.profilePicture}`
-                }
+                // if (message.receiver.profilePicture) {
+                //     message.receiver.profilePicture = `${process.env.BASE_URL}/storage/preview/${message.receiver.profilePicture}`
+                // }
                 const nickName = await this.getNickName(userId, message.sender.id === userId ? message.receiver.id : message.sender.id)
                 message.sender["nickName"] = message.sender.id === userId ? nickName.myNickName : nickName.otherUserNickName
 
@@ -112,8 +118,8 @@ export class MessagesService {
                 lastConversationMap.set(key, message)
             }
         }
-        // return paginate({ data: Array.from(lastConversationMap.values()), page })
-        return lastConversationMap.values();
+        // return paginate({ data: Array.from(lastConversationMap.values()), page }) 
+        return Array.from(lastConversationMap.values())
     }
 
     async getNickName(
@@ -193,7 +199,9 @@ export class MessagesService {
                         id: true,
                         email: true,
                         username: true,
-
+                        profilePicture: true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 receiver: {
@@ -201,6 +209,9 @@ export class MessagesService {
                         id: true,
                         email: true,
                         username: true,
+                        profilePicture: true,
+                        firstName:true,
+                        lastName:true
                     }
                 },
                 replyTo: {
@@ -221,11 +232,52 @@ export class MessagesService {
         }))
     }
 
-    async countSeenMessage(userId: number) {
-        return this.prisma.messages.count({
+    async getUnreadFromSenders(
+        userId:number
+    ){
+        const unreadFromSenders = await this.prisma.messages.groupBy({
+            by: ['senderId'],
             where: {
                 receiverId: userId,
-                isRead: true
+                isRead: false,
+            },
+            _count: {
+                _all: true,
+            },
+        });
+
+        return {
+            count:unreadFromSenders.length
+        };
+    }
+
+    async viewMessage(
+        userId:number,
+        senderId:number
+    ){
+        // basically, we view every message
+        // we send the state of the last message
+        const messages = await this.prisma.messages.updateMany({
+            where:{
+                receiverId:userId,
+                senderId:senderId
+            },
+            data:{
+                isRead:true
+            }
+        });
+
+        // no message to update
+        if(messages.count===0)
+            return undefined
+
+        return await this.prisma.messages.findFirst({
+            where:{
+                receiverId:userId,
+                senderId:senderId
+            },
+            orderBy:{
+                id:"desc"
             }
         })
     }

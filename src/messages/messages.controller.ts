@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Param, Put, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { NickNameDTO } from './dto/chat.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('messages')
+@UseGuards(AuthGuard)
 export class MessagesController {
     constructor(private messagesService: MessagesService) { }
 
@@ -12,6 +14,13 @@ export class MessagesController {
         @Query("page") pages: string = "1"
     ) {
         return await this.messagesService.getLastUsersMessages(req.user.id, parseInt(pages))
+    }
+
+    @Get('unread')
+    async getUnreadMessages(
+        @Req() req: { user: { id: number } }
+    ){
+        return await this.messagesService.getUnreadFromSenders(req.user.id);
     }
 
     @Get('get/:user_id')

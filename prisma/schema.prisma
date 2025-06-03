@@ -48,6 +48,7 @@ model User {
   oAuthTokens          OAuthToken[]
   provider             String?
   googleAccessToken    String?
+  stripeCustomerId     String?
 }
 
 model OAuthToken {

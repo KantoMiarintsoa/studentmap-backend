@@ -122,7 +122,10 @@ export class AccommodationService {
 
     async detailsAccommodation(id: number) {
         const accommodation = await this.prisma.accommodation.findUnique({
-            where: { id: id }
+            where: { id: id },
+            include:{
+                owner:true
+            }
         })
 
         if (!accommodation) {
@@ -168,7 +171,11 @@ export class AccommodationService {
     }
 
     async GetAllAccommodations() {
-        return await this.prisma.accommodation.findMany()
+        return await this.prisma.accommodation.findMany({
+            include:{
+                owner:true
+            }
+        })
     }
 
     async GetAccommodationsByOwner(userId: number) {
@@ -251,6 +258,9 @@ export class AccommodationService {
             },
             orderBy: {
                 id: 'asc'
+            },
+            include:{
+                owner:true
             }
         });
 
