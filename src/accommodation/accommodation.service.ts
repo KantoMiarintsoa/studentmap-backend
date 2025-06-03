@@ -258,6 +258,9 @@ export class AccommodationService {
             },
             orderBy: {
                 id: 'asc'
+            },
+            include:{
+                owner:true
             }
         });
 

@@ -74,7 +74,7 @@ export class AccommodationController {
 
 
     @Get("advanced-search")
-    @UseGuards(AuthGuard, new RoleGuard(['ADMIN']))
+    @UseGuards(AuthGuard, new RoleGuard(['STUDENT']))
     async searchAdvancedAccommodationStudent(
         @Query('nameUniversity') nameUniversity?: string,
         @Query('city') city?: string,
