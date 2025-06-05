@@ -73,24 +73,24 @@ export class AccommodationController {
 
 
 
-    @Get("advanced-search")
-    @UseGuards(AuthGuard, new RoleGuard(['STUDENT']))
-    async searchAdvancedAccommodationStudent(
-        @Query('nameUniversity') nameUniversity?: string,
-        @Query('city') city?: string,
-        @Query('address') address?: string,
-        @Query("type") type?: string,
-        @Query('budget') budget?: string
+    // @Get("advanced-search")
+    // @UseGuards(AuthGuard, new RoleGuard(['STUDENT']))
+    // async searchAdvancedAccommodationStudent(
+    //     @Query('nameUniversity') nameUniversity?: string,
+    //     @Query('city') city?: string,
+    //     @Query('address') address?: string,
+    //     @Query("type") type?: string,
+    //     @Query('budget') budget?: string
 
-    ) {
-        return this.accommodationservice.findAccommodationsNearUniversity(
-            nameUniversity,
-            city,
-            address,
-            budget && parseFloat(budget),
-            type as any
-        )
-    }
+    // ) {
+    //     return this.accommodationservice.findAccommodationsNearUniversity(
+    //         nameUniversity,
+    //         city,
+    //         address,
+    //         budget && parseFloat(budget),
+    //         type as any
+    //     )
+    // }
 
 
     @Get('owner')

@@ -19,9 +19,9 @@ export class AddAccomodationDTO {
     @IsNumber()
     area: number
 
-    @IsString()
-    @IsOptional()
-    unit: string = "m2"
+    // @IsString()
+    // @IsOptional()
+    // unit: string = "m2"
 
     @IsString()
     receptionCapacity: string
@@ -51,17 +51,17 @@ export class AddAccomodationDTO {
     @IsOptional()
     ownerId?: number
 
-    @IsString()
-    city?: string
+    // @IsString()
+    // city?: string
 
-    @IsString()
-    neighborhood: string
+    // @IsString()
+    // neighborhood: string
 
     // @IsInt()
     // localisation: [number, number]
 
 
-    // @IsOptional()
-    // @IsObject()
-    // media?: object
+    @IsOptional()
+    @IsObject()
+    media?: object
 }

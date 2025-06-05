@@ -20,6 +20,6 @@ export class UserRegisterDTO {
     @IsEnum(Role)
     role: Role
 
-    @IsString()
-    profilePicture: string
+    // @IsString()
+    // profilePicture: string
 }
