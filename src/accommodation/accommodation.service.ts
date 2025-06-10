@@ -225,12 +225,6 @@ export class AccommodationService {
                 createdAt:"desc"
             }
         })
-
-        return accommodations.map(accomodation => ({
-            ...accomodation,
-            rentMin: parseFloat(accomodation.rentMin.toFixed(2)),
-            rentMax: parseFloat(accomodation.rentMax.toFixed(2))
-        }))
     }
 
     async GetAccommodationsByOwner(userId: number) {
