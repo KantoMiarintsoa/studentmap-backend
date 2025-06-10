@@ -8,16 +8,28 @@ pdfMake.vfs = pdfFonts.vfs;
 
 @Injectable()
 export class ExportService {
-    async generatePDF(response: Response, content: string, filename: string) {
+    async generatePDF(response: Response, contentData: any, filename: string) {
         const documentDefinition = {
             content: [
-                { text: 'Titre du PDF kanto', style: 'header' },
-                { text: content || 'Contenu par défaut', style: 'content' },
-                { text: 'Généré par PDFMake', style: 'footer' }
+                { text: contentData.nom || 'Titre inconnu', style: 'header' },
+                { text: `\nNom : ${contentData.nom}`, style: 'content' },
+                { text: `Description : ${contentData.description}`, style: 'content' },
+                { text: `Type : ${contentData.type}`, style: 'content' },
+                {
+                    text: `Site web : ${contentData.siteWeb}`,
+                    link: contentData.siteWeb,
+                    style: 'content',
+                    color: 'blue',
+                    decoration: 'underline'
+                },
+                { text: `Mentions : ${contentData.mentions}`, style: 'content' },
+                { text: `Ville : ${contentData.ville}`, style: 'content' },
+                { text: `Adresse : ${contentData.adresse}`, style: 'content' },
+                { text: '\nGénéré par PDFMake', style: 'footer' }
             ],
             styles: {
                 header: { fontSize: 18, bold: true, alignment: 'center' },
-                content: { fontSize: 12, alignment: 'left' },
+                content: { fontSize: 12, margin: [0, 4, 0, 0] },
                 footer: { fontSize: 10, italics: true, alignment: 'center' }
             },
             defaultStyle: {
@@ -37,4 +49,3 @@ export class ExportService {
         });
     }
 }
-

@@ -118,15 +118,15 @@ export class UsersController {
     @UseGuards(AuthGuard, new RoleGuard(["OWNER"]))
     async setupIntent(
         @Req() req: { user: { id: number } }
-    ){
+    ) {
         return await this.userservice.createSetupIntent(req.user.id);
     }
 
     @Get('payment/payment-methods')
     @UseGuards(AuthGuard, new RoleGuard(["OWNER"]))
     async listPaymentMethods(
-        @Req() req: { user:{id:number}}
-    ){
+        @Req() req: { user: { id: number } }
+    ) {
         return await this.userservice.listPaymentMethods(req.user.id);
     }
 
@@ -134,7 +134,7 @@ export class UsersController {
     @UseGuards(AuthGuard, new RoleGuard(["OWNER"]))
     async removePaymentMethod(
         @Param('id') id: string
-    ){
+    ) {
         return await this.userservice.removePaymentMethod(id);
     }
 
@@ -142,11 +142,20 @@ export class UsersController {
     @UseGuards(AuthGuard, new RoleGuard(["OWNER"]))
     async buyCredit(
         @Body() body: BuyCreditDto,
-        @Req() req:{user:{id:number}}
-    ){
+        @Req() req: { user: { id: number } }
+    ) {
         return await this.userservice.buyCredit(
             body,
             req.user.id
         );
+    }
+
+    @Post('add-admin')
+    @UseGuards(AuthGuard, new RoleGuard(['ADMIN']))
+    async addAdminController(
+        @Req() req,
+        @Body() data: UserRegisterDTO,
+    ) {
+        return await this.userservice.addAdmin(req.user.id, data)
     }
 }

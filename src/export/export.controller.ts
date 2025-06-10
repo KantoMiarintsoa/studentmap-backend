@@ -1,20 +1,23 @@
-import { Controller, Get, Query, Res } from '@nestjs/common';
-import { ExportService } from './export.service';
+import { Controller, Get, Res } from '@nestjs/common';
 import { Response } from 'express';
-
+import { ExportService } from './export.service';
 
 @Controller('export')
 export class ExportController {
     constructor(private readonly exportService: ExportService) { }
 
     @Get('pdf')
-    async generatePDf(
-        @Query('content') content: string,
-        @Query('filename') filename: string,
-        @Res() response: Response
-    ) {
-        return await this.exportService.generatePDF(response, content, filename)
+    async exportPDF(@Res() response: Response) {
+        const data = {
+            nom: 'ua',
+            description: 'desc',
+            type: 'prive',
+            siteWeb: 'https://www.uaz.zurcher.edu.mg',
+            mentions: 'arts, commerce',
+            ville: 'Antsirabe',
+            adresse: 'adress'
+        };
+
+        await this.exportService.generatePDF(response, data, 'universite_ua');
     }
 }
-
-

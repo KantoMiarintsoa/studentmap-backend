@@ -281,7 +281,7 @@ export class UsersService {
         })
     }
 
-    async createSetupIntent(userId:number){
+    async createSetupIntent(userId: number) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId }
         })
@@ -302,44 +302,44 @@ export class UsersService {
 
         const data = await this.stripeService.createSetupIntent(customerId);
         return {
-            clientSecret:data.client_secret
+            clientSecret: data.client_secret
         }
     }
 
     async listPaymentMethods(userId: number) {
         const user = await this.prisma.user.findUnique({
-            where:{id:userId}
+            where: { id: userId }
         });
 
-        if(!user) {
+        if (!user) {
             throw new NotFoundException('User or Stripe customer not found');
         }
 
-        if(!user.stripeCustomerId){
+        if (!user.stripeCustomerId) {
             return [];
         }
 
         const paymentMethods = await this.stripeService.listPaymentMethods(user.stripeCustomerId);
 
-        return paymentMethods.data.map(pm=>({
-            id:pm.id,
-            card:pm.card
+        return paymentMethods.data.map(pm => ({
+            id: pm.id,
+            card: pm.card
         }));
     }
 
-    async removePaymentMethod(paymentMethodId:string){
+    async removePaymentMethod(paymentMethodId: string) {
         await this.stripeService.removePaymentMethod(paymentMethodId);
         return { message: "Payment method removed successfully" };
     }
 
-    async buyCredit(data:BuyCreditDto, userId:number){
+    async buyCredit(data: BuyCreditDto, userId: number) {
         const user = await this.prisma.user.findUnique({
-            where:{id:userId}
+            where: { id: userId }
         });
 
-        if(!user || !user.stripeCustomerId){
+        if (!user || !user.stripeCustomerId) {
             throw new NotFoundException({
-                message:"user not found"
+                message: "user not found"
             });
         }
 
@@ -351,14 +351,47 @@ export class UsersService {
         );
 
         const newCredit = (await this.prisma.user.update({
-            where: {id:userId},
-            data:{
-                serviceRemainders:{
-                    increment:data.credits
+            where: { id: userId },
+            data: {
+                serviceRemainders: {
+                    increment: data.credits
                 }
             }
         })).serviceRemainders;
 
-        return {credits: newCredit};
+        return { credits: newCredit };
     }
+
+    async addAdmin(currentUserId: number, data: UserRegisterDTO): Promise<User> {
+        const currentUser = await this.prisma.user.findUnique({ where: { id: currentUserId } });
+
+        if (!currentUser || currentUser.role !== Role.ADMIN) {
+            throw new BadRequestException('Only admins can add other admins');
+        }
+
+        const userExist = await this.prisma.user.findUnique({
+            where: { email: data.email }
+        });
+
+        if (userExist) {
+            throw new BadRequestException('Email already exists');
+        }
+
+        const hashedPassword = await this.hashPassword(data.password);
+
+        const newAdmin = await this.prisma.user.create({
+            data: {
+                firstName: data.firstName,
+                lastName: data.lastName,
+                email: data.email,
+                contact: data.contact,
+                password: hashedPassword,
+                // profilePicture: data.profilePicture,
+                role: Role.ADMIN,
+            }
+        });
+
+        return newAdmin;
+    }
+
 }
