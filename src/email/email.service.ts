@@ -58,7 +58,7 @@ export class EmailService {
             return info;
         } catch (error) {
             console.error('Error sending reset email: ', error);
-            throw new Error('Email sending failed');
+            // throw new Error('Email sending failed');
         }
     }
 
@@ -77,7 +77,7 @@ export class EmailService {
             return info;
         } catch (error) {
             console.error('Error sending notification email:', error);
-            throw new Error('Failed to send notification email');
+            // throw new Error('Failed to send notification email');
         }
     }
 }

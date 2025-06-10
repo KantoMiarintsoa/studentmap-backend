@@ -49,11 +49,9 @@ export class UsersService {
                 email: data.email,
                 contact: data.contact,
                 password: hashedPasssword,
-                profilePicture: data.profilePicture,
                 role: data.role
             }
         });
-
         // this.emailService.sendEmailAfterRegister({
         //     email: user.email
         // })

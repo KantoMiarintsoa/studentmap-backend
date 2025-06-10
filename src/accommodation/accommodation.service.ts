@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { PrismaService } from 'src/common/prisma.service';
 import { AddAccomodationDTO } from './dto/accommodation.dto';
 import { Type as AccommodationType } from '@prisma/client';
-import { UpdateAccommodationDTO } from './dto/update.dto';
+import { ReviewAccommodationDTO, UpdateAccommodationDTO } from './dto/update.dto';
 import { EmailService } from 'src/email/email.service';
 import { da } from '@faker-js/faker/.';
 import { StorageService } from 'src/storage/storage.service';
@@ -38,7 +38,7 @@ export class AccommodationService {
 
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
-            select: { role: true, id: true }
+            select: { role: true, id: true, serviceRemainders:true }
         })
 
         if (!user) {
@@ -51,6 +51,13 @@ export class AccommodationService {
         if (!ownerId) {
             throw new BadRequestException({
                 message: "Owner ID is required. (Admins must provide a valid ownerId)"
+            });
+        }
+
+        // check serviceRemainder
+        if(user.role==="OWNER" && user.serviceRemainders===0){
+            throw new BadRequestException({
+                message:"You don't have enough credits"
             });
         }
 
@@ -67,7 +74,7 @@ export class AccommodationService {
             data: {
                 name: data.name,
                 address: data.address,
-                neighborhood: data.neighborhood,
+                neighborhood: "",
                 city: data.city,
                 area: data.area,
                 receptionCapacity: data.receptionCapacity,
@@ -82,7 +89,17 @@ export class AccommodationService {
                 owner: { connect: { id: ownerId } }
             }
         })
-        console.log(accommodation)
+        // console.log(accommodation)
+        if(user.role==="OWNER"){
+            await this.prisma.user.update({
+                where:{id:userId},
+                data:{
+                    serviceRemainders:{
+                        decrement:1
+                    }
+                }
+            });
+        }
 
         const users = await this.prisma.user.findMany({
             where: {
@@ -116,7 +133,7 @@ export class AccommodationService {
                 console.warn(`❌ Email non envoyé à ${user.email}`, error.message);
             }
         }
-        return accommodation
+        return {...accommodation, serviceRemainders:user.serviceRemainders-1}
     }
 
 
@@ -170,10 +187,35 @@ export class AccommodationService {
 
     }
 
+    async reviewAccommodation(id:number, data:ReviewAccommodationDTO){
+        const accommodation = await this.prisma.accommodation.findUnique({
+            where: ({ id })
+        })
+
+        if (!accommodation) {
+            throw new NotFoundException({
+                message: "accommodation not found"
+            })
+        }
+
+        const avg = (accommodation.rating + data.rating) / 2;
+        const rounded = Math.round(avg * 2) / 2;
+
+        return await this.prisma.accommodation.update({
+            where:{id},
+            data:{
+                rating:rounded
+            }
+        });
+    }
+
     async GetAllAccommodations() {
         return await this.prisma.accommodation.findMany({
             include:{
                 owner:true
+            },
+            orderBy:{
+                createdAt:"desc"
             }
         })
     }

@@ -1,8 +1,31 @@
 import { PrismaClient, Role, Type, TypeUniversity } from "@prisma/client";
 import { faker } from "@faker-js/faker";
 import * as bcrypt from "bcrypt";
+import path from "path";
+import fs from "fs";
 
 const prisma = new PrismaClient();
+
+function getImageGroups(images: string[], groupSize: number, count: number): string[][] {
+    const shuffled = [...images].sort(() => 0.5 - Math.random());
+    const groups: string[][] = [];
+
+    for (let i = 0; i < count && shuffled.length >= groupSize; i++) {
+        groups.push(
+            shuffled.splice(0, groupSize).map((img) => `house_data/${img}`)
+        );
+    }
+
+    return groups;
+}
+
+const imageFolder = path.join(__dirname, "../upload/house_data"); // adjust path if needed
+const allImages = fs.readdirSync(imageFolder).filter(file =>
+    /\.(jpe?g|png|webp)$/i.test(file)
+);
+
+const imageGroups = getImageGroups(allImages, 4, 30); // 30 accommodations
+
 
 async function main() {
     const users = await Promise.all(
@@ -37,7 +60,7 @@ async function main() {
     );
 
     await Promise.all(
-        Array.from({ length: 30 }).map(() =>
+        Array.from({ length: 30 }).map((_, index) =>
             prisma.accommodation.create({
                 data: {
                     name: faker.company.name(),
@@ -49,7 +72,7 @@ async function main() {
                     rentMax: faker.number.float({ min: 501, max: 1000 }),
                     currency: "Ar",
                     media: {
-                        images: [faker.image.url(), faker.image.url(), faker.image.url(), faker.image.url(), faker.image.url()],
+                        images: imageGroups[index] || [],
                     },
                     ownerId: faker.helpers.arrayElement(users.filter(user => user.role === Role.OWNER)).id,
                     type: faker.helpers.arrayElement(Object.values(Type)),

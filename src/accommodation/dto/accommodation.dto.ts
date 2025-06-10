@@ -52,10 +52,10 @@ export class AddAccomodationDTO {
     ownerId?: number
 
     @IsString()
-    city?: string
+    city: string
 
-    @IsString()
-    neighborhood: string
+    // @IsString()
+    // neighborhood: string
 
     // @IsInt()
     // localisation: [number, number]
