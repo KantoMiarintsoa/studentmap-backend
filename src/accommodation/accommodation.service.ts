@@ -62,6 +62,8 @@ export class AccommodationService {
                 mediaUrl.push(fileName);
             });
         }
+        const rentMinRounded = parseFloat(data.rentMin.toFixed(2));
+        const rentMaxRounded = parseFloat(data.rentMax.toFixed(2));
 
         const accommodation = this.prisma.accommodation.create({
             data: {
@@ -72,8 +74,8 @@ export class AccommodationService {
                 area: data.area,
                 receptionCapacity: data.receptionCapacity,
                 IsAvailable: data.IsAvailable,
-                rentMin: data.rentMin,
-                rentMax: data.rentMax,
+                rentMin: rentMinRounded,
+                rentMax: rentMaxRounded,
                 type: data.type,
                 description: data.description,
                 media: {
@@ -133,7 +135,12 @@ export class AccommodationService {
                 message: "accommodation not found"
             })
         } ``
-        return accommodation
+        return {
+            ...accommodation,
+            rentMin: parseFloat(accommodation.rentMin.toFixed(2)),
+            rentMax: parseFloat(accommodation.rentMax.toFixed(2)),
+            area: parseFloat(accommodation.area.toFixed(2))
+        }
     }
 
     async updateAccommodation(id: number, data: UpdateAccommodationDTO, userId: number) {
@@ -171,11 +178,17 @@ export class AccommodationService {
     }
 
     async GetAllAccommodations() {
-        return await this.prisma.accommodation.findMany({
+        const accommodations = await this.prisma.accommodation.findMany({
             include: {
                 owner: true
             }
         })
+
+        return accommodations.map(accomodation => ({
+            ...accomodation,
+            rentMin: parseFloat(accomodation.rentMin.toFixed(2)),
+            rentMax: parseFloat(accomodation.rentMax.toFixed(2))
+        }))
     }
 
     async GetAccommodationsByOwner(userId: number) {
@@ -268,7 +281,11 @@ export class AccommodationService {
         //     throw new NotFoundException('No results found for this search.');
         // }
 
-        return results;
+        return results.map(accomodation => ({
+            ...accomodation,
+            rentMin: parseFloat(accomodation.rentMin.toFixed(2)),
+            rentMax: parseFloat(accomodation.rentMax.toFixed(2))
+        }));
     }
 
     // private haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
