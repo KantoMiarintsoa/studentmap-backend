@@ -54,9 +54,9 @@ export class UsersService {
             }
         });
 
-        // this.emailService.sendEmailAfterRegister({
-        //     email: user.email
-        // })
+        this.emailService.sendEmailAfterRegister({
+            email: user.email
+        })
         return user
     }
 
