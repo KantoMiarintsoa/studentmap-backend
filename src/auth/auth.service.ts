@@ -55,11 +55,21 @@ export class AuthService {
 
 
     async validateGoogleToken(token: string) {
-        const ticket = await this.oauthClient.verifyIdToken({
-            idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID,
-        });
-        const payload = ticket.getPayload();
+        let payload: any;
+        try {
+            payload = await fetch(
+                `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`, {
+                method: "GET"
+            }
+            ).then(data => data.json())
+        }
+        catch {
+            throw new UnauthorizedException({
+                message: "Invalid token"
+            })
+        }
+
+        // const payload = ticket.getPayload();
         if (!payload) {
             throw new UnauthorizedException('Invalid token ')
         }
@@ -68,12 +78,13 @@ export class AuthService {
             update: {},
             create: {
                 email: payload.email,
-                firstName: payload.given_name!,
                 lastName: payload.family_name!,
+                firstName: payload.given_name!,
                 profilePicture: payload.picture!,
                 provider: 'google',
                 password: '',
                 contact: ''
+
             }
         });
 
@@ -82,7 +93,7 @@ export class AuthService {
         const accessTokenApp = await this.jwtservice.signAsync(payloadJWT, {
             secret: process.env.SECRET
         });
-        const refreshToken = await this.jwtservice.signAsync(payload, {
+        const refreshToken = await this.jwtservice.signAsync(payloadJWT, {
             secret: process.env.SECRET,
             expiresIn: '7d'
         })
