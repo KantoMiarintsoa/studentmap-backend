@@ -8,13 +8,13 @@ export class EmailService {
 
     constructor() {
         this.transporter = nodemailer.createTransport({
-            host: 'sandbox.smtp.mailtrap.io',
-            port: 587,
+            host: "sandbox.smtp.mailtrap.io",
+            port: 2525,
             auth: {
-                user: "c7bc900ac41043",
-                pass: "7e8a28925c073e"
+                user: "3b4e385020d01d",
+                pass: "7ce74b7180468c"
             }
-        })
+        });
     }
 
     async sendEmailAfterRegister({

@@ -52,9 +52,10 @@ export class UsersService {
                 role: data.role
             }
         });
-        // this.emailService.sendEmailAfterRegister({
-        //     email: user.email
-        // })
+
+        this.emailService.sendEmailAfterRegister({
+            email: user.email
+        })
         return user
     }
 
