@@ -51,9 +51,11 @@ export class AddAccomodationDTO {
     @IsOptional()
     ownerId?: number
 
-    // @IsString()
-    // city?: string
+    @IsString()
+    city: string
 
+    // @IsString()
+    // neighborhood: string
     // @IsString()
     // neighborhood: string
 

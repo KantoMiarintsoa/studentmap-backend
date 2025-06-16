@@ -16,6 +16,7 @@ export class AuthService {
 
 
     async login(email: string, pass: string): Promise<any> {
+        console.log(email)
         const user = await this.userservice.findByEmail(email);
 
         if (!user) {
@@ -47,7 +48,8 @@ export class AuthService {
                 email: user.email,
                 role: user.role,
                 profilePicture: user.profilePicture,
-                contact: user.contact
+                contact: user.contact,
+                serviceRemainders: user.serviceRemainders
             },
             refreshToken: refreshToken
         }

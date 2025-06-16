@@ -2,9 +2,10 @@ import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Query, Req, Up
 import { AccommodationService } from './accommodation.service';
 import { AddAccomodationDTO } from './dto/accommodation.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { UpdateAccommodationDTO } from './dto/update.dto';
+import { ReviewAccommodationDTO, UpdateAccommodationDTO } from './dto/update.dto';
 import { RoleGuard } from 'src/auth/role.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { Role } from '@prisma/client';
 
 @Controller('accommodation')
 export class AccommodationController {
@@ -21,7 +22,6 @@ export class AccommodationController {
         @UploadedFiles() files?: Array<Express.Multer.File>
 
     ) {
-        console.log(files);
         return await this.accommodationservice.addAccomodation(data, req.user.id, files);
     }
 
@@ -41,6 +41,19 @@ export class AccommodationController {
         @Body() data: UpdateAccommodationDTO
     ) {
         return await this.accommodationservice.updateAccommodation(parseInt(id), data, req.user.id)
+    }
+
+    @Put(':id/review')
+    @UseGuards(AuthGuard, new RoleGuard(["ADMIN", "STUDENT"]))
+    async reviewAccommodation(
+        @Param("id") id: string,
+        @Req() req: { user: { id: number } },
+        @Body() data: ReviewAccommodationDTO
+    ){
+        return await this.accommodationservice.reviewAccommodation(
+            parseInt(id),
+            data
+        );
     }
 
     @Get('lists')
@@ -73,24 +86,24 @@ export class AccommodationController {
 
 
 
-    // @Get("advanced-search")
-    // @UseGuards(AuthGuard, new RoleGuard(['STUDENT']))
-    // async searchAdvancedAccommodationStudent(
-    //     @Query('nameUniversity') nameUniversity?: string,
-    //     @Query('city') city?: string,
-    //     @Query('address') address?: string,
-    //     @Query("type") type?: string,
-    //     @Query('budget') budget?: string
+    @Get("advanced-search")
+    @UseGuards(AuthGuard, new RoleGuard(['STUDENT']))
+    async searchAdvancedAccommodationStudent(
+        @Query('nameUniversity') nameUniversity?: string,
+        @Query('city') city?: string,
+        @Query('address') address?: string,
+        @Query("type") type?: string,
+        @Query('budget') budget?: string
 
-    // ) {
-    //     return this.accommodationservice.findAccommodationsNearUniversity(
-    //         nameUniversity,
-    //         city,
-    //         address,
-    //         budget && parseFloat(budget),
-    //         type as any
-    //     )
-    // }
+    ) {
+        return this.accommodationservice.findAccommodationsNearUniversity(
+            nameUniversity,
+            city,
+            address,
+            budget && parseFloat(budget),
+            type as any
+        )
+    }
 
 
     @Get('owner')

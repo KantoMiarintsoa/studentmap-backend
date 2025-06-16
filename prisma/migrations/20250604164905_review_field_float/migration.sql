@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Accommodation" ALTER COLUMN "rating" SET DEFAULT 5,
+ALTER COLUMN "rating" SET DATA TYPE DOUBLE PRECISION;

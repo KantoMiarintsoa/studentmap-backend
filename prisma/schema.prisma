@@ -80,6 +80,7 @@ model Accommodation {
   localisation      Json?
   latitude          Float?
   longitude         Float?
+  rating            Float @default(5)
 }
 
 enum Type {
